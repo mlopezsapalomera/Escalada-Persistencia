@@ -92,3 +92,5 @@ La base de dades segueix un model proper a la tercera forma normal (3NF), evitan
 ---
 
 ## 6. Diagrama de la base de dades
+
+![Diagrama base de datos](erd-diagram-2026-04-29T10-35-16-2k.png)
