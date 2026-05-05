@@ -31,9 +31,10 @@ També s’han creat taules auxiliars:
 - Un sector pertany a una única escola.
 - Un sector pot tenir diverses vies.
 - Una via pertany a un sector i a una escola.
+- La relació directa entre vies i escoles s’ha afegit per facilitar consultes i millorar el rendiment.
 - Una via és creada per un escalador.
 - Una via pot tenir diversos llargs (en el cas de vies clàssiques i de gel).
-- Un escalador pot haver escalat diverses vies.
+- Un escalador pot haver escalat diverses vies mitjançant la taula historial_escaladors.
 
 ---
 
@@ -94,3 +95,9 @@ La base de dades segueix un model proper a la tercera forma normal (3NF), evitan
 ## 6. Diagrama de la base de dades
 
 ![Diagrama base de dades](diagrama_bd.png)
+
+---
+
+## 7. Consideracions
+
+Algunes restriccions més complexes, com la validació del tipus de via segons el sector o el control automàtic del canvi d’estat de les vies, es gestionen des de l’aplicació Java i no directament a la base de dades.
