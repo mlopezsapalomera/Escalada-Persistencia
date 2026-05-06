@@ -6,17 +6,16 @@ import java.sql.SQLException;
 public class conexio_db {
     private static Connection conn = null;
 
-    public static void comprobarConexion() {
-        try {
-            if (conn == null || conn.isClosed()) {
-                conectar();
-            } else {
-                desconectar();
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al verificar conexión: " + e.getMessage());
+public static void comprobarConexion() {
+    try {
+        // Solo conectamos si no existe o está cerrada
+        if (conn == null || conn.isClosed()) {
+            conectar();
         }
+    } catch (SQLException e) {
+        System.err.println("Error al verificar conexión: " + e.getMessage());
     }
+}
 
     private static void conectar() {
         try {

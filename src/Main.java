@@ -11,7 +11,7 @@ public class Main {
 
         // 1. CREAMOS un objeto de prueba
         // Usamos el constructor: nom, poblacio, aproximacio, numVies, popularitat
-        Escola testEscola = new Escola("Siurana", "Cornudella", "15 minuts", 1200, Escola.Popularitat.ALTA);
+        Escola testEscola = new Escola("Montserrat", "Cornudella", "15 minuts", 1200, Escola.Popularitat.ALTA);
         
         System.out.println("\nIntentando insertar escuela...");
         if (control.crearEscola(testEscola)) {
