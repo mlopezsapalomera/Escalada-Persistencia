@@ -1,42 +1,35 @@
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import model.persintencia.conexio_db;
+import controller.EscolaController;
+import model.entidades.Escola;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("--- Iniciando Aplicación Pillam Ltd. Co. ---");
+        System.out.println("--- Test de Funcionamiento: EscolaController ---");
 
-        // 1. Llamamos a comprobarConexion para CONECTAR
-        conexio_db.comprobarConexion();
+        // Instanciamos el controlador que acabas de rellenar
+        EscolaController control = new EscolaController();
 
-        Connection connection = conexio_db.getConn();
-
-        if (connection != null) {
-            try {
-                // 2. Usamos MetaData para listar las tablas
-                DatabaseMetaData metaData = connection.getMetaData();
-                String[] types = {"TABLE"};
-                ResultSet rs = metaData.getTables("db_escalada", null, "%", types);
-
-                System.out.println("\nTablas encontradas en la base de datos:");
-                while (rs.next()) {
-                    String tableName = rs.getString("TABLE_NAME");
-                    System.out.println("  - " + tableName);
-                }
-                rs.close();
-
-            } catch (SQLException e) {
-                System.err.println("Error al consultar las tablas: " + e.getMessage());
-                e.printStackTrace();
-            } finally {
-                // 3. Llamamos a comprobarConexion para DESCONECTAR
-                conexio_db.comprobarConexion();
-            }
+        // 1. CREAMOS un objeto de prueba
+        // Usamos el constructor: nom, poblacio, aproximacio, numVies, popularitat
+        Escola testEscola = new Escola("Siurana", "Cornudella", "15 minuts", 1200, Escola.Popularitat.ALTA);
+        
+        System.out.println("\nIntentando insertar escuela...");
+        if (control.crearEscola(testEscola)) {
+            System.out.println("[OK] ¡Escuela guardada en la base de datos!");
         } else {
-            System.err.println("No se pudo realizar la consulta porque no hay conexión.");
+            System.err.println("[ERROR] No se pudo guardar.");
+        }
+
+        // 2. LISTAMOS todo lo que haya en la tabla para ver si aparece
+        System.out.println("\n--- Listado Actual en DB ---");
+        List<Escola> lista = control.llistarTotesEscoles();
+        
+        if (lista.isEmpty()) {
+            System.out.println("La tabla está vacía.");
+        } else {
+            for (Escola e : lista) {
+                System.out.println("ID: " + e.getId() + " | Nombre: " + e.getNom() + " | Población: " + e.getPoblacio());
+            }
         }
     }
 }

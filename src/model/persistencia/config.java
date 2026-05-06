@@ -3,7 +3,7 @@
 * De esta forma, si cambiamos de base de datos, solo hemos de modificar esto
 * */
 
-package model.persintencia;
+package model.persistencia;
 
 public class config {
     // Cambiando esta variable, el pryecto sabra que driver y que URL usar
