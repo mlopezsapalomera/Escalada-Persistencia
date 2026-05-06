@@ -1,8 +1,9 @@
-import model.conexio_db;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import model.persintencia.conexio_db;
 
 public class Main {
     public static void main(String[] args) {
