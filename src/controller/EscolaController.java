@@ -1,7 +1,7 @@
 package controller;
 
 import model.entidades.Escola;
-import model.persistencia.conexio_db; // Ja corregit a persistencia
+import model.persistencia.conexio_db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

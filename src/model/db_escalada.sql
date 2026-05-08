@@ -27,7 +27,7 @@ CREATE TABLE escaladors (
     alias VARCHAR(50),
     edat INT,
     nivell_maxim VARCHAR(5) NOT NULL, -- grau màxim assolit
-    estil_preferit ENUM('esportiva', 'clàssica', 'gel')
+    estil_preferit ENUM('esportiva', 'classica', 'gel')
 );
 
 -- =====================================
@@ -72,7 +72,7 @@ CREATE TABLE vies (
     data_finalitzacio_estat DATE DEFAULT NULL, -- per control automàtic d'estat
 
     tipus_roca ENUM('conglomerat','granit','calcaria','arenisca','altres'),
-    tipus_via ENUM('esportiva','clàssica','gel') NOT NULL,
+    tipus_via ENUM('esportiva','classica','gel') NOT NULL,
 
     restriccions TEXT,
 

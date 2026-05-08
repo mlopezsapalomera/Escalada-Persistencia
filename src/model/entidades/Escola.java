@@ -26,14 +26,19 @@ public class Escola {
     // Getters y Setters...
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
     public String getNom() { return nom; }
     public void setNom(String nom) { this.nom = nom; }
+
     public String getPoblacio() { return poblacio; }
     public void setPoblacio(String poblacio) { this.poblacio = poblacio; }
+
     public String getAproximacio() { return aproximacio; }
     public void setAproximacio(String aproximacio) { this.aproximacio = aproximacio; }
+
     public int getNumVies() { return numVies; }
     public void setNumVies(int numVies) { this.numVies = numVies; }
+
     public Popularitat getPopularitat() { return popularitat; }
     public void setPopularitat(Popularitat popularitat) { this.popularitat = popularitat; }
 }
