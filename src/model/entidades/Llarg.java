@@ -1,34 +1,18 @@
 package model.entidades;
 
 public class Llarg {
-    private int id;
-    private Via via;
-    private int ordreLlarg;
     private int llargada;
-    private String grau;
-    private String ancoratge;
+    private String dificultat;
+    private Via.Orientacio orientacio;
 
-    public Llarg() {}
-
-    public Llarg(Via via, int ordreLlarg, int llargada, String grau, String ancoratge) {
-        this.via = via;
-        this.ordreLlarg = ordreLlarg;
+    public Llarg(int llargada, String dificultat, Via.Orientacio orientacio) {
         this.llargada = llargada;
-        this.grau = grau;
-        this.ancoratge = ancoratge;
+        this.dificultat = dificultat;
+        this.orientacio = orientacio;
     }
 
-    // Getters y Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public Via getVia() { return via; }
-    public void setVia(Via via) { this.via = via; }
-    public int getOrdreLlarg() { return ordreLlarg; }
-    public void setOrdreLlarg(int ordreLlarg) { this.ordreLlarg = ordreLlarg; }
+    // Getters
     public int getLlargada() { return llargada; }
-    public void setLlargada(int llargada) { this.llargada = llargada; }
-    public String getGrau() { return grau; }
-    public void setGrau(String grau) { this.grau = grau; }
-    public String getAncoratge() { return ancoratge; }
-    public void setAncoratge(String ancoratge) { this.ancoratge = ancoratge; }
+    public String getDificultat() { return dificultat; }
+    public Via.Orientacio getOrientacio() { return orientacio; }
 }

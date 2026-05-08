@@ -1,77 +1,71 @@
-import controller.EscolaController;
-import controller.EscaladorController;
-import controller.SectorController;
-import model.entidades.Escola;
-import model.entidades.Escalador;
-import model.entidades.Sector;
-
+import controller.*;
+import model.entidades.*;
 import java.math.BigDecimal;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        // 1. Instanciem els controladors
         EscolaController escolaCtrl = new EscolaController();
         EscaladorController escaladorCtrl = new EscaladorController();
         SectorController sectorCtrl = new SectorController();
+        ViaController viaCtrl = new ViaController();
 
-        System.out.println("=== TEST DE FUNCIONAMENT DE L'APLICACIÓ ===");
+        System.out.println("--- Verificant Requeriments Pillam Ltd. Co. ---");
 
-        // --- PART 1: TEST ESCOLA ---
-        System.out.println("\n1. Creant Escola...");
-        Escola esc = new Escola("Montserrat", "Monistrol", "30 minuts", 500, Escola.Popularitat.ALTA);
-        if (escolaCtrl.crearEscola(esc)) {
-            System.out.println("[OK] Escola creada.");
-        }
-
-        // --- PART 2: TEST ESCALADOR ---
-        System.out.println("\n2. Creant Escalador...");
-        Escalador e = new Escalador("Biel Soler", "BIEL", 20, "7b", Escalador.Estil.ESPORTIVA);
-        if (escaladorCtrl.crearEscalador(e)) {
-            System.out.println("[OK] Escalador creat.");
-        }
-
-        // --- PART 3: TEST SECTOR (Necessita una Escola) ---
-        System.out.println("\n3. Creant Sector...");
-        // Busquem la primera escola de la llista per saber el seu ID
+        // 1. CREAR I RECUPERAR ESCOLA
+        escolaCtrl.crearEscola(new Escola("Montserrat", "Monistrol", "A-2 sortida Montserrat", 500, Escola.Popularitat.ALTA));
+        // Molt important: tornem a llistar per tenir l'objecte amb l'ID que ha posat la BBDD
         List<Escola> escoles = escolaCtrl.llistarTotesEscoles();
-        if (!escoles.isEmpty()) {
-            Escola escolaDesti = escoles.get(0); // Agafem la primera que trobem
-            
-            Sector sec = new Sector();
-            sec.setEscola(escolaDesti); // Li assignem l'escola
-            sec.setNom("Sector La Vinya Nova");
-            sec.setLatitud(new BigDecimal("41.5833"));
-            sec.setLongitud(new BigDecimal("1.8333"));
-            sec.setAproximacio("15 minuts");
-            sec.setNumVies(45);
-            sec.setPopularitat(Sector.Popularitat.ALTA);
-            sec.setRestriccions("Cap");
-            sec.setTipusSector(Sector.TipusSector.MIXTE_ROCA);
+        if (escoles.isEmpty()) return;
+        Escola eDb = escoles.get(0); 
 
-            if (sectorCtrl.crearSector(sec)) {
-                System.out.println("[OK] Sector creat dins de: " + escolaDesti.getNom());
-            }
-        } else {
-            System.err.println("[ERROR] No hi ha escoles a la DB per crear un sector.");
+        // 2. CREAR I RECUPERAR ESCALADOR
+        escaladorCtrl.crearEscalador(new Escalador("Biel Soler", "Bielix", 20, "7b+", Escalador.Estil.ESPORTIVA));
+        List<Escalador> escaladors = escaladorCtrl.llistarTotsEscaladors();
+        if (escaladors.isEmpty()) return;
+        Escalador bielDb = escaladors.get(0);
+
+        // 3. CREAR I RECUPERAR SECTOR
+        Sector vinyaNova = new Sector();
+        vinyaNova.setEscola(eDb);
+        vinyaNova.setNom("Vinya Nova");
+        vinyaNova.setLatitud(new BigDecimal("41.5833"));
+        vinyaNova.setLongitud(new BigDecimal("1.8333"));
+        vinyaNova.setAproximacio("15 minuts des del pàrquing");
+        vinyaNova.setNumVies(50);
+        vinyaNova.setPopularitat(Sector.Popularitat.ALTA);
+        vinyaNova.setRestriccions("Nidificació de febrer a juny");
+        vinyaNova.setTipusSector(Sector.TipusSector.MIXTE_ROCA);
+
+        sectorCtrl.crearSector(vinyaNova);
+        // Recuperem el sector per tenir el seu ID
+        List<Sector> sectors = sectorCtrl.llistarTotsSectors();
+        if (sectors.isEmpty()) return;
+        Sector sDb = sectors.get(0);
+
+        // 4. CREAR LA VIA (Ara sí, amb tots els IDs de la BBDD)
+        Via viaNova = new Via();
+        viaNova.setNom("L'esperó de la discòrdia");
+        viaNova.setSector(sDb); // Fem servir sDb que té ID
+        viaNova.setEstil(Via.Estil.ESPORTIVA);
+        viaNova.setEstat(Via.Estat.APTE);
+        viaNova.setCreadaPer(bielDb); // Fem servir bielDb que té ID
+        viaNova.setRestriccions("Cap");
+
+        // Dades específiques segons PDF
+        viaNova.setLlargadaTotal(25); // Entre 5 i 30m 
+        viaNova.setDificultatEsportiva("6b+"); // [cite: 15]
+        viaNova.setOrientacio(Via.Orientacio.S); // [cite: 16]
+        viaNova.setAncoratges("parabolts"); // 
+        viaNova.setTipusRoca("conglomerat"); // 
+
+        if (viaCtrl.crearVia(viaNova)) {
+            System.out.println("[OK] Via esportiva creada amb èxit!");
         }
 
-        // --- PART 4: LLISTATS FINALS ---
-        System.out.println("\n=== LLISTAT FINAL A LA BASE DE DADES ===");
-        
-        System.out.println("\n--- ESCOLES ---");
-        for (Escola es : escolaCtrl.llistarTotesEscoles()) {
-            System.out.println("ID: " + es.getId() + " | Nom: " + es.getNom());
-        }
-
-        System.out.println("\n--- ESCALADORS ---");
-        for (Escalador escador : escaladorCtrl.llistarTotsEscaladors()) {
-            System.out.println("ID: " + escador.getId() + " | Nom: " + escador.getNom() + " | Alies: " + escador.getAlias());
-        }
-
-        System.out.println("\n--- SECTORS ---");
-        for (Sector s : sectorCtrl.llistarTotsSectors()) {
-            System.out.println("Sector: " + s.getNom() + " | Pertany a Escola ID: " + s.getEscola().getId());
-        }
+        // 5. MOSTRAR RESULTATS
+        System.out.println("\n--- LLISTAT D'ESCALADORS ---");
+        escaladorCtrl.llistarTotsEscaladors().forEach(esc -> 
+            System.out.println(esc.getAlias() + " - Nivell: " + esc.getNivellMaxim()));
     }
 }
