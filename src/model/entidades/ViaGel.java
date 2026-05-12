@@ -1,18 +1,24 @@
 package model.entidades;
+
 import java.util.List;
 
 public class ViaGel extends Via {
+
     public ViaGel() {
         super();
-        setEstil(Via.Estil.GEL);
+        this.setEstil(Via.Estil.GEL);
     }
 
-    public ViaGel(Sector sector, Escalador creadaPer, String nom,
-                  Via.Orientacio orientacio, Via.Estat estat,
-                  Via.TipusRoca tipusRoca, String restriccions,
-                  List<Llarg> llargs) {
-        super(sector, creadaPer, nom, "N/A", orientacio, estat,
-              tipusRoca, Via.Estil.GEL, restriccions);
-        setLlistaLlargs(llargs);
+    public ViaGel(Sector sector, Escalador creador, String nom, String grauGlobal, Orientacio orientacio, Estat estat, String tipusRoca, List<Llarg> llargs) {
+        super();
+        this.setSector(sector);
+        this.setCreadaPer(creador);
+        this.setNom(nom);
+        this.setGrauGlobal(grauGlobal);
+        this.setOrientacio(orientacio);
+        this.setEstat(estat);
+        this.setTipusRoca(tipusRoca);
+        this.setLlistaLlargs(llargs);
+        this.setEstil(Via.Estil.GEL);
     }
 }

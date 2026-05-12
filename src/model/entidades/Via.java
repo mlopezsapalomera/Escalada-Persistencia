@@ -4,75 +4,75 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Via {
+    // 1. ENUMS (Hem canviat TipusVia per Estil)
+    public enum Estil { ESPORTIVA, CLASSICA, GEL }
+    public enum Estat { APTE, DESEQUIPADA, PROHIBIDA }
+    public enum TipusRoca { CONGLOMERAT, GRANIT, CALCARIA, ARENISCA, ALTRES }
+    public enum Orientacio { N, NE, NO, SE, SO, E, O, S }
 
-    // Enums ajustats a la BD
-    public enum Estil       { ESPORTIVA, CLASSICA, GEL }
-    public enum Estat       { APTE, CONSTRUCCIO, TANCADA }  // ← corregit
-    public enum TipusRoca   { CONGLOMERAT, GRANIT, CALCARIA, ARENISCA, ALTRES }
-    public enum Orientacio  { N, NE, NO, SE, SO, E, O, S }
-
-    // Atributs base (taula 'vies')
+    // 2. ATRIBUTS BASE
     private int id;
     private Sector sector;
     private String nom;
-    private Estil estil;
+    private Estil estil; // Ara l'Enum i la variable es diuen igual (Estil)
     private Estat estat;
     private Escalador creadaPer;
     private String restriccions;
-    private TipusRoca tipusRoca;
-    private Orientacio orientacio;
+    private String grauGlobal; // Afegit perquè ho demanaven les filles
 
-    // Atributs per a Esportiva (taula 'detalls_esportiva')
+    // 3. ATRIBUTS ESPORTIVA
     private int llargadaTotal;
     private String dificultatEsportiva;
+    private Orientacio orientacio;
     private String ancoratges;
+    private String tipusRoca;
 
-    // Atributs per a Clàssica/Gel (taula 'llargs')
+    // 4. ATRIBUTS CLÀSSICA/GEL
     private List<Llarg> llistaLlargs = new ArrayList<>();
 
-    // Constructor buit
+    // CONSTRUCTOR BUIT ÚNIC
     public Via() {}
 
-    // Constructor complet (per les subclasses)
-    public Via(Sector sector, Escalador creadaPer, String nom,
-               String grauGlobal, Orientacio orientacio, Estat estat,
-               TipusRoca tipusRoca, Estil estil, String restriccions) {
-        this.sector = sector;
-        this.creadaPer = creadaPer;
-        this.nom = nom;
-        this.dificultatEsportiva = grauGlobal;
-        this.orientacio = orientacio;
-        this.estat = estat;
-        this.tipusRoca = tipusRoca;
-        this.estil = estil;
-        this.restriccions = restriccions;
-    }
+    // --- GETTERS I SETTERS ---
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    // Getters i Setters
-    public int getId()                          { return id; }
-    public void setId(int id)                   { this.id = id; }
-    public Sector getSector()                   { return sector; }
-    public void setSector(Sector sector)        { this.sector = sector; }
-    public String getNom()                      { return nom; }
-    public void setNom(String nom)              { this.nom = nom; }
-    public Estil getEstil()                     { return estil; }
-    public void setEstil(Estil estil)           { this.estil = estil; }
-    public Estat getEstat()                     { return estat; }
-    public void setEstat(Estat estat)           { this.estat = estat; }
-    public Escalador getCreadaPer()             { return creadaPer; }
-    public void setCreadaPer(Escalador e)       { this.creadaPer = e; }
-    public String getRestriccions()             { return restriccions; }
-    public void setRestriccions(String r)       { this.restriccions = r; }
-    public TipusRoca getTipusRoca()             { return tipusRoca; }
-    public void setTipusRoca(TipusRoca t)       { this.tipusRoca = t; }
-    public Orientacio getOrientacio()           { return orientacio; }
-    public void setOrientacio(Orientacio o)     { this.orientacio = o; }
-    public int getLlargadaTotal()               { return llargadaTotal; }
-    public void setLlargadaTotal(int l)         { this.llargadaTotal = l; }
-    public String getDificultatEsportiva()      { return dificultatEsportiva; }
-    public void setDificultatEsportiva(String d){ this.dificultatEsportiva = d; }
-    public String getAncoratges()               { return ancoratges; }
-    public void setAncoratges(String a)         { this.ancoratges = a; }
-    public List<Llarg> getLlistaLlargs()        { return llistaLlargs; }
-    public void setLlistaLlargs(List<Llarg> l)  { this.llistaLlargs = l; }
+    public Sector getSector() { return sector; }
+    public void setSector(Sector sector) { this.sector = sector; }
+
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
+
+    public Estil getEstil() { return estil; }
+    public void setEstil(Estil estil) { this.estil = estil; }
+
+    public Estat getEstat() { return estat; }
+    public void setEstat(Estat estat) { this.estat = estat; }
+
+    public Escalador getCreadaPer() { return creadaPer; }
+    public void setCreadaPer(Escalador creadaPer) { this.creadaPer = creadaPer; }
+
+    public String getRestriccions() { return restriccions; }
+    public void setRestriccions(String restriccions) { this.restriccions = restriccions; }
+    
+    public String getGrauGlobal() { return grauGlobal; }
+    public void setGrauGlobal(String grauGlobal) { this.grauGlobal = grauGlobal; }
+
+    public int getLlargadaTotal() { return llargadaTotal; }
+    public void setLlargadaTotal(int llargadaTotal) { this.llargadaTotal = llargadaTotal; }
+
+    public String getDificultatEsportiva() { return dificultatEsportiva; }
+    public void setDificultatEsportiva(String dificultatEsportiva) { this.dificultatEsportiva = dificultatEsportiva; }
+
+    public Orientacio getOrientacio() { return orientacio; }
+    public void setOrientacio(Orientacio orientacio) { this.orientacio = orientacio; }
+
+    public String getAncoratges() { return ancoratges; }
+    public void setAncoratges(String ancoratges) { this.ancoratges = ancoratges; }
+
+    public String getTipusRoca() { return tipusRoca; }
+    public void setTipusRoca(String tipusRoca) { this.tipusRoca = tipusRoca; }
+
+    public List<Llarg> getLlistaLlargs() { return llistaLlargs; }
+    public void setLlistaLlargs(List<Llarg> llistaLlargs) { this.llistaLlargs = llistaLlargs; }
 }
