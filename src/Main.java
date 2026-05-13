@@ -7,10 +7,8 @@ public class Main {
     public static void main(String[] args) {
         // Inicialitzem vistes i controladors
         MenuView menu = new MenuView();
-        EscolaView escolaView = new EscolaView();
         EscolaController escolaCtrl = new EscolaController();
         EscaladorController escaladorCtrl = new EscaladorController();
-        EscaladorView escaladorView = new EscaladorView();
 
         int opcio;
         do {
@@ -18,21 +16,23 @@ public class Main {
             
             switch (opcio) {
                 case 1:
-                    // LLISTAR ESCOLES
-                    List<Escola> escoles = escolaCtrl.llistarTotesEscoles();
-                    escolaView.mostrarLlistatEscoles(escoles);
+                    // GESTIONAR ESCOLES (Pendent d'implementar)
+                    System.out.println("Funcionalitat d'escoles pendent d'implementar.");
                     break;
                     
                 case 2:
-                    // PROVA DE CREACIÓ (Aquí podríem demanar dades per teclat)
-                    System.out.println("Creant escola de prova...");
-                    Escola nova = new Escola("Siurana", "Cornudella", "Pàrquing del poble", 800, Escola.Popularitat.ALTA);
-                    escolaCtrl.crearEscola(nova);
+                     // GESTIONAR SECTORS (Pendent d'implementar)
+                    System.out.println("Funcionalitat de sectors pendent d'implementar.");
                     break;
 
                 case 3:
-                    // LLISTAR ESCALADORS
-                    escaladorView.mostrarLlistat(escaladorCtrl.llistarTotsEscaladors());
+                    // GESTIONAR VIES (Pendent d'implementar)
+                     System.out.println("Funcionalitat de vies pendent d'implementar.");
+                    break;
+
+                case 4:
+                    // GESTIONAR ESCALADORS
+                    escaladorCtrl.gestionarEscaladors();
                     break;
 
                 case 0:

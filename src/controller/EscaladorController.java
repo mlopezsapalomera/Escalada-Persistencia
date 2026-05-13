@@ -1,109 +1,108 @@
 package controller;
 
+import model.dao.DAOFactory;
+import model.dao.EscaladorDAO;
 import model.entidades.Escalador;
-import model.persistencia.conexio_db;
-import java.sql.*;
-import java.util.ArrayList;
+import view.EscaladorView;
+
 import java.util.List;
+import java.util.Scanner;
 
 public class EscaladorController {
+    private final EscaladorDAO escaladorDAO;
+    private final EscaladorView escaladorView;
 
-    // 1. CREAR
-    public boolean crearEscalador(Escalador e) {
-        String sql = "INSERT INTO escaladors (nom, alias, edat, nivell_maxim, estil_preferit) VALUES (?, ?, ?, ?, ?)";
-        conexio_db.comprobarConexion();
-        Connection conn = conexio_db.getConn();
-        if (conn == null) return false;
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, e.getNom());
-            pstmt.setString(2, e.getAlias());
-            pstmt.setInt(3, e.getEdat());
-            pstmt.setString(4, e.getNivellMaxim());
-            pstmt.setString(5, e.getEstilPreferit().name().toLowerCase()); 
-
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.err.println("Error al crear l'escalador: " + ex.getMessage());
-            return false;
-        }
+    public EscaladorController() {
+        // Aquesta línia ara hauria de funcionar correctament amb els imports correctes
+        this.escaladorDAO = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscaladorDAO();
+        this.escaladorView = new EscaladorView();
     }
 
-    // 2. MODIFICAR
-    public boolean modificarEscalador(Escalador e) {
-        String sql = "UPDATE escaladors SET nom=?, alias=?, edat=?, nivell_maxim=?, estil_preferit=? WHERE id=?";
-        conexio_db.comprobarConexion();
-        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
-            pstmt.setString(1, e.getNom());
-            pstmt.setString(2, e.getAlias());
-            pstmt.setInt(3, e.getEdat());
-            pstmt.setString(4, e.getNivellMaxim());
-            pstmt.setString(5, e.getEstilPreferit().name().toLowerCase());
-            pstmt.setInt(6, e.getId());
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.err.println("Error al modificar l'escalador: " + ex.getMessage());
-            return false;
-        }
-    }
+    public void gestionarEscaladors() {
+        Scanner scanner = new Scanner(System.in);
+        int opcio;
 
-    // 3. LLISTAR UN PER ID
-    public Escalador llistarEscalador(int id) {
-        String sql = "SELECT * FROM escaladors WHERE id = ?";
-        conexio_db.comprobarConexion();
-        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    Escalador e = new Escalador();
-                    e.setId(rs.getInt("id"));
-                    e.setNom(rs.getString("nom"));
-                    e.setAlias(rs.getString("alias"));
-                    e.setEdat(rs.getInt("edat"));
-                    e.setNivellMaxim(rs.getString("nivell_maxim"));
-                    e.setEstilPreferit(Escalador.Estil.valueOf(rs.getString("estil_preferit").toUpperCase()));
-                    return e;
-                }
+        do {
+            escaladorView.mostrarMenu();
+            opcio = scanner.nextInt();
+            scanner.nextLine(); // Consumir newline
+
+            switch (opcio) {
+                case 1:
+                    crearEscalador(scanner);
+                    break;
+                case 2:
+                    modificarEscalador(scanner);
+                    break;
+                case 3:
+                    llistarUnEscalador(scanner);
+                    break;
+                case 4:
+                    llistarTotsEscaladors();
+                    break;
+                case 5:
+                    eliminarEscalador(scanner);
+                    break;
+                case 0:
+                    System.out.println("Tornant al menú principal...");
+                    break;
+                default:
+                    System.out.println("Opció no vàlida.");
             }
-        } catch (SQLException ex) {
-            System.err.println("Error al cercar l'escalador: " + ex.getMessage());
-        }
-        return null;
+        } while (opcio != 0);
     }
 
-    // 4. LLISTAR TOTS
-    public List<Escalador> llistarTotsEscaladors() {
-        String sql = "SELECT * FROM escaladors";
-        List<Escalador> llista = new ArrayList<>();
-        conexio_db.comprobarConexion();
-        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) {
-                Escalador e = new Escalador();
-                e.setId(rs.getInt("id"));
-                e.setNom(rs.getString("nom"));
-                e.setAlias(rs.getString("alias"));
-                e.setEdat(rs.getInt("edat"));
-                e.setNivellMaxim(rs.getString("nivell_maxim"));
-                e.setEstilPreferit(Escalador.Estil.valueOf(rs.getString("estil_preferit").toUpperCase()));
-                llista.add(e);
+    private void crearEscalador(Scanner scanner) {
+        Escalador escalador = escaladorView.dadesCrearEscalador(scanner);
+        if (escaladorDAO.create(escalador)) {
+            System.out.println("Escalador creat correctament.");
+        } else {
+            System.out.println("Error en crear l'escalador.");
+        }
+    }
+
+    private void modificarEscalador(Scanner scanner) {
+        System.out.print("Introdueix l'ID de l'escalador a modificar: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+        Escalador escalador = escaladorDAO.getById(id);
+        if (escalador != null) {
+            Escalador escaladorModificat = escaladorView.dadesModificarEscalador(scanner, escalador);
+            if (escaladorDAO.update(escaladorModificat)) {
+                System.out.println("Escalador modificat correctament.");
+            } else {
+                System.out.println("Error en modificar l'escalador.");
             }
-        } catch (SQLException ex) {
-            System.err.println("Error al llistar escaladors: " + ex.getMessage());
+        } else {
+            System.out.println("No s'ha trobat cap escalador amb aquest ID.");
         }
-        return llista;
     }
 
-    // 5. ELIMINAR
-    public boolean eliminarEscalador(int id) {
-        String sql = "DELETE FROM escaladors WHERE id = ?";
-        conexio_db.comprobarConexion();
-        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.err.println("Error al eliminar l'escalador: " + ex.getMessage());
-            return false;
+    private void llistarUnEscalador(Scanner scanner) {
+        System.out.print("Introdueix l'ID de l'escalador a llistar: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+        Escalador escalador = escaladorDAO.getById(id);
+        if (escalador != null) {
+            escaladorView.mostrarDetalls(escalador);
+        } else {
+            System.out.println("No s'ha trobat cap escalador amb aquest ID.");
+        }
+    }
+
+    private void llistarTotsEscaladors() {
+        List<Escalador> escaladors = escaladorDAO.getAll();
+        escaladorView.mostrarLlista(escaladors);
+    }
+
+    private void eliminarEscalador(Scanner scanner) {
+        System.out.print("Introdueix l'ID de l'escalador a eliminar: ");
+        int id = scanner.nextInt();
+        scanner.nextLine();
+        if (escaladorDAO.delete(id)) {
+            System.out.println("Escalador eliminat correctament.");
+        } else {
+            System.out.println("Error en eliminar l'escalador.");
         }
     }
 }

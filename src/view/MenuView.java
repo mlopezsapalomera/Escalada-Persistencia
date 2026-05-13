@@ -9,9 +9,10 @@ public class MenuView {
         System.out.println("\n***********************************");
         System.out.println("* MENU PILLAM LTD. CO - ESCALADA  *");
         System.out.println("***********************************");
-        System.out.println("1. Llistar Escoles");
-        System.out.println("2. Crear una Escola nova");
-        System.out.println("3. Llistar Escaladors");
+        System.out.println("1. Gestionar Escoles");
+        System.out.println("2. Gestionar Sectors");
+        System.out.println("3. Gestionar Vies");
+        System.out.println("4. Gestionar Escaladors");
         System.out.println("0. Sortir");
         System.out.println("***********************************");
         System.out.print("Selecciona una opció: ");

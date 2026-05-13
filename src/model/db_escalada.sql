@@ -21,13 +21,15 @@ CREATE TABLE escoles (
 -- TAULA ESCALADORS
 -- Usuaris i creadors de vies
 -- =====================================
-CREATE TABLE escaladors (
+CREATE TABLE IF NOT EXISTS escaladors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     alias VARCHAR(50),
     edat INT,
-    nivell_maxim VARCHAR(5) NOT NULL, -- grau màxim assolit
-    estil_preferit ENUM('esportiva', 'classica', 'gel')
+    nivell VARCHAR(10),
+    nom_via_nivell_maxim VARCHAR(100),
+    estil_preferit ENUM('ESPORTIVA', 'CLASSICA', 'GEL'),
+    UNIQUE(nom) -- Segons l'enunciat, un escalador es dóna d'alta si no existeix pel nom
 );
 
 -- =====================================
