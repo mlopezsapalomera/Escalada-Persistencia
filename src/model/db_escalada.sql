@@ -10,18 +10,19 @@ USE db_escalada;
 -- =====================================
 CREATE TABLE escoles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL UNIQUE, -- nom únic de l'escola
-    poblacio VARCHAR(100) NOT NULL,
+    nom VARCHAR(100) NOT NULL,
+    lloc VARCHAR(100),
     aproximacio TEXT,
-    num_vies INT DEFAULT 0, -- número total de vies
-    popularitat ENUM('baixa', 'mitjana', 'alta')
+    num_vies INT DEFAULT 0,
+    popularitat ENUM('BAIXA', 'MITJANA', 'ALTA'),
+    UNIQUE(nom) -- No poden existir dues escoles amb el mateix nom
 );
 
 -- =====================================
 -- TAULA ESCALADORS
 -- Usuaris i creadors de vies
 -- =====================================
-CREATE TABLE IF NOT EXISTS escaladors (
+CREATE TABLE escaladors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     alias VARCHAR(50),

@@ -1,6 +1,7 @@
 package model.dao;
 
 import model.dao.mysql.MySqlEscaladorDAOImpl;
+import model.dao.mysql.MySqlEscolaDAOImpl; // Afegim aquest import
 
 public abstract class DAOFactory {
 
@@ -10,7 +11,7 @@ public abstract class DAOFactory {
 
     // Mètodes abstractes per obtenir cada tipus de DAO
     public abstract EscaladorDAO getEscaladorDAO();
-    // public abstract EscolaDAO getEscolaDAO(); // Per a futures implementacions
+    public abstract EscolaDAO getEscolaDAO(); // Afegim el nou mètode abstracte
 
     /**
      * Retorna la fàbrica de DAO correcta segons el tipus de base de dades.
@@ -26,10 +27,10 @@ public abstract class DAOFactory {
                         return new MySqlEscaladorDAOImpl();
                     }
 
-                    // @Override
-                    // public EscolaDAO getEscolaDAO() {
-                    //     return new MySqlEscolaDAOImpl();
-                    // }
+                    @Override
+                    public EscolaDAO getEscolaDAO() {
+                        return new MySqlEscolaDAOImpl(); // Afegim la implementació per a EscolaDAO
+                    }
                 };
             // case POSTGRESQL:
             //     // Aquí aniria la implementació per a PostgreSQL

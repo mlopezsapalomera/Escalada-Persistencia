@@ -1,7 +1,6 @@
-import controller.*;
-import view.*;
-import model.entidades.*;
-import java.util.List;
+import controller.EscolaController;
+import controller.EscaladorController;
+import view.MenuView;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,8 +15,8 @@ public class Main {
             
             switch (opcio) {
                 case 1:
-                    // GESTIONAR ESCOLES (Pendent d'implementar)
-                    System.out.println("Funcionalitat d'escoles pendent d'implementar.");
+                    // GESTIONAR ESCOLES
+                    escolaCtrl.gestionarEscoles();
                     break;
                     
                 case 2:
