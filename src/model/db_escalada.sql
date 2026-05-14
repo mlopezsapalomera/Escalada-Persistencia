@@ -14,7 +14,7 @@ CREATE TABLE escoles (
     lloc VARCHAR(100),
     aproximacio TEXT,
     num_vies INT DEFAULT 0,
-    popularitat ENUM('BAIXA', 'MITJANA', 'ALTA'),
+    popularitat ENUM('baixa', 'mitjana', 'alta'),
     UNIQUE(nom) -- No poden existir dues escoles amb el mateix nom
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE escaladors (
     edat INT,
     nivell VARCHAR(10),
     nom_via_nivell_maxim VARCHAR(100),
-    estil_preferit ENUM('ESPORTIVA', 'CLASSICA', 'GEL'),
+    estil_preferit ENUM('esportiva', 'classica', 'gel'),
     UNIQUE(nom) -- Segons l'enunciat, un escalador es dóna d'alta si no existeix pel nom
 );
 

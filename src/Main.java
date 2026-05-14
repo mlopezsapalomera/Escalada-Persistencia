@@ -1,4 +1,5 @@
 import controller.EscolaController;
+import controller.SectorController;
 import controller.EscaladorController;
 import view.MenuView;
 
@@ -8,6 +9,7 @@ public class Main {
         MenuView menu = new MenuView();
         EscolaController escolaCtrl = new EscolaController();
         EscaladorController escaladorCtrl = new EscaladorController();
+        SectorController sectorCtrl = new SectorController();
 
         int opcio;
         do {
@@ -21,7 +23,7 @@ public class Main {
                     
                 case 2:
                      // GESTIONAR SECTORS (Pendent d'implementar)
-                    System.out.println("Funcionalitat de sectors pendent d'implementar.");
+                    sectorCtrl.gestionarSectors();
                     break;
 
                 case 3:

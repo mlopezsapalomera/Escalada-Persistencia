@@ -7,7 +7,53 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import view.SectorView;
+import model.dao.DAOFactory;
+import java.util.Scanner;
+
+// (Deixa els imports de dalt que ja tenies)
+
 public class SectorController {
+
+    private SectorView sectorView = new SectorView();
+
+    public void gestionarSectors() {
+        Scanner scanner = new Scanner(System.in);
+        int opcio;
+
+        do {
+            sectorView.mostrarMenu();
+            opcio = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (opcio) {
+                case 1:
+                    // Obtenim les escoles usant el DAO que tens súper ben muntat
+                    List<Escola> escoles = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscolaDAO().getAll();
+                    
+                    if (escoles.isEmpty()) {
+                        System.out.println("Error: No pots crear un sector sense crear primer una Escola!");
+                        break;
+                    }
+                    
+                    Sector s = sectorView.dadesCrearSector(scanner, escoles);
+                    if (crearSector(s)) {
+                        System.out.println("Sector creat correctament!");
+                    } else {
+                        System.out.println("Error en crear el sector.");
+                    }
+                    break;
+                case 2:
+                    sectorView.mostrarLlista(llistarTotsSectors());
+                    break;
+                case 0:
+                    System.out.println("Tornant al menú principal...");
+                    break;
+                default:
+                    System.out.println("Opció no vàlida.");
+            }
+        } while (opcio != 0);
+    }
 
     public boolean crearSector(Sector s) {
         String sql = "INSERT INTO sectors (id_escola, nom, latitud, longitud, aproximacio, num_vies, popularitat, restriccions, tipus_sector) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";

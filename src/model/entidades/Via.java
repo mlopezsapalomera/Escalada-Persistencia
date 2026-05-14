@@ -6,7 +6,7 @@ import java.util.List;
 public class Via {
     // 1. ENUMS (Hem canviat TipusVia per Estil)
     public enum Estil { ESPORTIVA, CLASSICA, GEL }
-    public enum Estat { APTE, DESEQUIPADA, PROHIBIDA }
+    public enum Estat { APTE, CONSTRUCCIO, TANCADA }
     public enum TipusRoca { CONGLOMERAT, GRANIT, CALCARIA, ARENISCA, ALTRES }
     public enum Orientacio { N, NE, NO, SE, SO, E, O, S }
 
@@ -32,6 +32,10 @@ public class Via {
 
     // CONSTRUCTOR BUIT ÚNIC
     public Via() {}
+
+
+    private java.sql.Date dataFinalitzacioEstat;
+
 
     // --- GETTERS I SETTERS ---
     public int getId() { return id; }
@@ -75,4 +79,7 @@ public class Via {
 
     public List<Llarg> getLlistaLlargs() { return llistaLlargs; }
     public void setLlistaLlargs(List<Llarg> llistaLlargs) { this.llistaLlargs = llistaLlargs; }
+
+    public java.sql.Date getDataFinalitzacioEstat() { return dataFinalitzacioEstat; }
+    public void setDataFinalitzacioEstat(java.sql.Date dataFinalitzacioEstat) { this.dataFinalitzacioEstat = dataFinalitzacioEstat; }
 }
