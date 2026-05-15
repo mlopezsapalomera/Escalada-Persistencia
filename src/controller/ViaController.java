@@ -20,43 +20,55 @@ public class ViaController {
             opcio = sc.nextInt(); sc.nextLine();
             switch (opcio) {
                 case 1:
-                    // Necessitem dades per als desplegables de la vista
-                    List<Escola> escoles = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscolaDAO().getAll();
-                    // L'ideal seria que el llistarTotsSectors també estigués al DAO, però de moment usem el mètode del controlador
-                    List<Sector> sectors = new SectorController().llistarTotsSectors();
-                    List<Escalador> escaladors = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscaladorDAO().getAll();
-                    
-                    if (sectors.isEmpty() || escaladors.isEmpty()) {
-                        System.out.println("Error: Necessites tenir almenys un Sector i un Escalador creats!");
-                        break;
-                    }
-
-                    Via novaVia = viaView.dadesNovaVia(sc, escoles, sectors, escaladors);
-                    if (crearVia(novaVia)) {
-                        System.out.println("Via guardada amb èxit!");
-                    }
+                    crearNovaVia(sc);
                     break;
                 case 2:
-                    System.out.println("Llistar vies pendent d'implementar...");
+                    llistarViesDetallades();
+                    break;
+                case 3:
+                    System.out.print("ID de l'escola per veure vies APTE: ");
+                    int idEsc = sc.nextInt();
+                    mostrarViesDisponiblesPerEscola(idEsc);
+                    break;
+                case 0:
+                    System.out.println("Tornant al menú principal...");
                     break;
             }
         } while (opcio != 0);
     }
 
+    private void crearNovaVia(Scanner sc) {
+        // Carreguem dades necessàries per als selectors de la vista
+        List<Escola> escoles = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscolaDAO().getAll();
+        List<Sector> sectors = new SectorController().llistarTotsSectors();
+        List<Escalador> escaladors = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscaladorDAO().getAll();
+        
+        if (sectors.isEmpty() || escaladors.isEmpty()) {
+            System.out.println("Error: Necessites sectors i escaladors creats prèviament.");
+            return;
+        }
+
+        Via v = viaView.dadesNovaVia(sc, escoles, sectors, escaladors);
+        
+        // Validació del grau segons estil abans d'insertar
+        if (validarGrau(v.getGrauGlobal(), v.getEstil())) {
+            if (crearVia(v)) {
+                System.out.println("Via guardada correctament!");
+            }
+        }
+    }
+
     public boolean crearVia(Via v) {
-        // SQL basat en la teva taula 'vies'
         String sqlGeneral = "INSERT INTO vies (id_sector, id_escola, id_creador, nom, grau_global, orientacio, estat, data_finalitzacio_estat, tipus_roca, tipus_via, restriccions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
-        if (conn == null) return false;
 
         try {
             conn.setAutoCommit(false); // Inici transacció
 
             try (PreparedStatement pstmt = conn.prepareStatement(sqlGeneral, Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setInt(1, v.getSector().getId());
-                // Busquem l'ID de l'escola a través de l'objecte sector que hem triat
                 pstmt.setInt(2, v.getSector().getEscola().getId()); 
                 pstmt.setInt(3, v.getCreadaPer().getId());
                 pstmt.setString(4, v.getNom());
@@ -73,31 +85,22 @@ public class ViaController {
                 ResultSet rs = pstmt.getGeneratedKeys();
                 if (rs.next()) {
                     v.setId(rs.getInt(1));
-
-                    // 2. Segon pas: Inserir detalls segons el tipus
                     if (v.getEstil() == Via.Estil.ESPORTIVA) {
                         insertarDetallEsportiva(v, conn);
-                    } else if (v.getEstil() == Via.Estil.CLASSICA || v.getEstil() == Via.Estil.GEL) {
-                        // Si has implementat la llista de llargs, la guardem
-                        if (v.getLlistaLlargs() != null && !v.getLlistaLlargs().isEmpty()) {
-                            insertarLlargs(v, conn);
-                        }
+                    } else if (!v.getLlistaLlargs().isEmpty()) {
+                        insertarLlargs(v, conn);
                     }
                 }
-                
                 conn.commit();
                 return true;
-
             } catch (SQLException ex) {
                 conn.rollback();
-                System.err.println("Error en la transacció: " + ex.getMessage());
+                System.err.println("Error en transacció: " + ex.getMessage());
                 return false;
             } finally {
                 conn.setAutoCommit(true);
             }
-        } catch (SQLException ex) {
-            return false;
-        }
+        } catch (SQLException ex) { return false; }
     }
 
     private void insertarDetallEsportiva(Via v, Connection conn) throws SQLException {
@@ -105,7 +108,7 @@ public class ViaController {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, v.getId());
             pstmt.setInt(2, v.getLlargadaTotal());
-            pstmt.setString(3, v.getAncoratges()); // 'spits', 'parabolts', 'químics'
+            pstmt.setString(3, v.getAncoratges());
             pstmt.executeUpdate();
         }
     }
@@ -126,22 +129,44 @@ public class ViaController {
         }
     }
 
-        private boolean validarGrau(String grau, Via.Estil estil) {
-        // Accepta números del 4 al 9, seguits opcionalment de a, b, c i el +
-        String regex = "^[4-9][abc]?\\+?$"; 
-        
-        if (!grau.matches(regex)) {
-            System.out.println("Error: El format del grau no és vàlid (Ex: 6a, 7b+, 4).");
-            return false;
-        }
-        
-        // Validació específica per a Gel (màxim 8b)
-        if (estil == Via.Estil.GEL && grau.compareTo("8b") > 0) {
-            System.out.println("Error: En vies de Gel el grau màxim és 8b.");
-            return false;
-        }
-        
-        return true;
+    public void llistarViesDetallades() {
+        String sql = "SELECT v.nom, v.grau_global, e.nom AS nom_escola, esc.nom AS nom_escalador " +
+                     "FROM vies v JOIN escoles e ON v.id_escola = e.id JOIN escaladors esc ON v.id_creador = esc.id";
+        conexio_db.comprobarConexion();
+        try (Statement stmt = conexio_db.getConn().createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            System.out.println("\n--- LLISTAT DE VIES ---");
+            while (rs.next()) {
+                System.out.printf("Via: %-15s | Grau: %-4s | Escola: %-15s | Creador: %s%n",
+                    rs.getString("nom"), rs.getString("grau_global"), rs.getString("nom_escola"), rs.getString("nom_escalador"));
+            }
+        } catch (SQLException ex) { System.err.println("Error: " + ex.getMessage()); }
     }
 
+    public void mostrarViesDisponiblesPerEscola(int idEscola) {
+        String sql = "SELECT nom, grau_global FROM vies WHERE id_escola = ? AND estat = 'apte'";
+        conexio_db.comprobarConexion();
+        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
+            pstmt.setInt(1, idEscola);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                System.out.println("\nVies disponibles (APTE):");
+                while (rs.next()) {
+                    System.out.println("- " + rs.getString("nom") + " (" + rs.getString("grau_global") + ")");
+                }
+            }
+        } catch (SQLException ex) { System.err.println("Error: " + ex.getMessage()); }
+    }
+
+    private boolean validarGrau(String grau, Via.Estil estil) {
+        String regex = "^[4-9][abc]?\\+?$"; 
+        if (!grau.matches(regex)) {
+            System.out.println("Format de grau incorrecte (4 a 9c+).");
+            return false;
+        }
+        if (estil == Via.Estil.GEL && grau.compareTo("8b") > 0) {
+            System.out.println("Màxim grau en gel és 8b.");
+            return false;
+        }
+        return true;
+    }
 }
