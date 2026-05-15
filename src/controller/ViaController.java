@@ -125,4 +125,23 @@ public class ViaController {
             pstmt.executeBatch();
         }
     }
+
+        private boolean validarGrau(String grau, Via.Estil estil) {
+        // Accepta números del 4 al 9, seguits opcionalment de a, b, c i el +
+        String regex = "^[4-9][abc]?\\+?$"; 
+        
+        if (!grau.matches(regex)) {
+            System.out.println("Error: El format del grau no és vàlid (Ex: 6a, 7b+, 4).");
+            return false;
+        }
+        
+        // Validació específica per a Gel (màxim 8b)
+        if (estil == Via.Estil.GEL && grau.compareTo("8b") > 0) {
+            System.out.println("Error: En vies de Gel el grau màxim és 8b.");
+            return false;
+        }
+        
+        return true;
+    }
+
 }
