@@ -15,7 +15,7 @@ CREATE TABLE escoles (
     aproximacio TEXT,
     num_vies INT DEFAULT 0,
     popularitat ENUM('baixa', 'mitjana', 'alta'),
-    UNIQUE(nom) -- No poden existir dues escoles amb el mateix nom
+        UNIQUE(nom)
 );
 
 -- =====================================
@@ -67,7 +67,7 @@ CREATE TABLE vies (
     id_creador INT NOT NULL,
 
     nom VARCHAR(100) NOT NULL,
-    grau_global VARCHAR(5) NOT NULL,
+    grau_global ENUM('4','4+','5','5+','6a','6a+','6b','6b+','6c','6c+','7a','7a+','7b','7b+','7c','7c+','8a','8a+','8b','8b+','8c','8c+','9a','9a+','9b','9b+','9c','9c+') NOT NULL,
 
     orientacio ENUM('N','NE','NO','SE','SO','E','O','S') NOT NULL,
     estat ENUM('apte','construccio','tancada') DEFAULT 'apte',
@@ -81,11 +81,15 @@ CREATE TABLE vies (
 
     -- relacions
     FOREIGN KEY (id_sector) REFERENCES sectors(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_escola) REFERENCES escoles(id),
+    FOREIGN KEY (id_escola) REFERENCES escoles(id) ON DELETE CASCADE,
     FOREIGN KEY (id_creador) REFERENCES escaladors(id),
 
     -- nom únic dins sector
-    UNIQUE (id_sector, nom)
+    UNIQUE (id_sector, nom),
+    -- nom únic dins escola (no pot haver dues vies amb el mateix nom a la mateixa escola)
+    UNIQUE (id_escola, nom),
+    -- Si la via és de tipus 'gel', limitar el grau a l'horitzó permès per gel
+    CHECK (tipus_via != 'gel' OR grau_global IN ('4','4+','5','5+','6a','6a+','6b','6b+','6c','6c+','7a','7a+','7b','7b+','7c','7c+','8a','8a+','8b'))
 );
 
 -- =====================================
@@ -107,13 +111,16 @@ CREATE TABLE detalls_esportiva (
 CREATE TABLE llargs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_via INT NOT NULL,
-    ordre_llarg INT NOT NULL, -- L1, L2, L3...
+        ordre_llarg INT NOT NULL,
     llargada INT CHECK (llargada BETWEEN 15 AND 30),
     grau VARCHAR(5),
     ancoratge VARCHAR(100),
 
     FOREIGN KEY (id_via) REFERENCES vies(id) ON DELETE CASCADE
 );
+
+-- Unicitat d'ordre de llarg dins d'una via
+ALTER TABLE llargs ADD UNIQUE (id_via, ordre_llarg);
 
 -- =====================================
 -- HISTORIAL ESCALADORS

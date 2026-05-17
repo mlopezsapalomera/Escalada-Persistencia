@@ -17,9 +17,12 @@ public class MenuView {
         System.out.println("***********************************");
         System.out.print("Selecciona una opció: ");
         
-        // Llegim l'opció de l'usuari
-        int opcio = sc.nextInt();
-        sc.nextLine(); // Netegem el buffer del scanner
-        return opcio;
+        // Llegim l'opció de l'usuari amb validació per evitar InputMismatchException
+        String line = sc.nextLine();
+        try {
+            return Integer.parseInt(line.trim());
+        } catch (NumberFormatException e) {
+            return -1; // Opció invàlida
+        }
     }
 }

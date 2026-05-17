@@ -14,6 +14,22 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     public boolean create(Escola escola) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
+
+        // Unicitat: no permetre dues escoles amb el mateix nom
+        String checkSql = "SELECT COUNT(*) AS cnt FROM escoles WHERE LOWER(nom) = LOWER(?)";
+        try (PreparedStatement pc = conn.prepareStatement(checkSql)) {
+            pc.setString(1, escola.getNom());
+            try (ResultSet rc = pc.executeQuery()) {
+                if (rc.next() && rc.getInt("cnt") > 0) {
+                    System.out.println("Error: ja existeix una escola amb aquest nom.");
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error comprovant unicitat d'escola: " + e.getMessage());
+            return false;
+        }
+
         String sql = "INSERT INTO escoles (nom, lloc, aproximacio, popularitat) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -55,7 +71,10 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
                     escola.setLloc(rs.getString("lloc"));
                     escola.setAproximacio(rs.getString("aproximacio"));
                     escola.setNumVies(rs.getInt("num_vies"));
-                    escola.setPopularitat(Escola.Popularitat.valueOf(rs.getString("popularitat")));
+                    String pop = rs.getString("popularitat");
+                    if (pop != null) pop = pop.toUpperCase();
+                    else pop = "MITJANA";
+                    escola.setPopularitat(Escola.Popularitat.valueOf(pop));
                 }
             }
         } catch (SQLException e) {
@@ -81,13 +100,39 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
                 escola.setLloc(rs.getString("lloc"));
                 escola.setAproximacio(rs.getString("aproximacio"));
                 escola.setNumVies(rs.getInt("num_vies"));
-                escola.setPopularitat(Escola.Popularitat.valueOf(rs.getString("popularitat")));
+                String pop = rs.getString("popularitat");
+                if (pop != null) pop = pop.toUpperCase();
+                else pop = "MITJANA";
+                escola.setPopularitat(Escola.Popularitat.valueOf(pop));
                 escoles.add(escola);
             }
         } catch (SQLException e) {
             System.err.println("Error en obtenir totes les escoles: " + e.getMessage());
         }
         return escoles;
+    }
+
+    @Override
+    public List<Escola> getEscolesAmbRestriccionsActives() {
+        conexio_db.comprobarConexion();
+        Connection conn = conexio_db.getConn();
+        String sql = "SELECT DISTINCT e.* FROM escoles e JOIN sectors s ON s.id_escola = e.id WHERE s.restriccions IS NOT NULL AND s.restriccions <> '' UNION SELECT DISTINCT e.* FROM escoles e JOIN vies v ON v.id_escola = e.id WHERE v.restriccions IS NOT NULL AND v.restriccions <> ''";
+        List<Escola> res = new ArrayList<>();
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                Escola escola = new Escola();
+                escola.setId(rs.getInt("id"));
+                escola.setNom(rs.getString("nom"));
+                escola.setLloc(rs.getString("lloc"));
+                escola.setAproximacio(rs.getString("aproximacio"));
+                escola.setNumVies(rs.getInt("num_vies"));
+                String pop = rs.getString("popularitat");
+                if (pop != null) pop = pop.toUpperCase(); else pop = "MITJANA";
+                escola.setPopularitat(Escola.Popularitat.valueOf(pop));
+                res.add(escola);
+            }
+        } catch (SQLException e) { System.err.println("Error al llistar escoles amb restriccions: " + e.getMessage()); }
+        return res;
     }
 
     @Override
@@ -114,8 +159,22 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     public boolean delete(int id) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
-        String sql = "DELETE FROM escoles WHERE id = ?";
+        // Check for dependent sectors
+        String check = "SELECT COUNT(*) AS cnt FROM sectors WHERE id_escola = ?";
+        try (PreparedStatement pc = conn.prepareStatement(check)) {
+            pc.setInt(1, id);
+            try (ResultSet rc = pc.executeQuery()) {
+                if (rc.next() && rc.getInt("cnt") > 0) {
+                    System.out.println("No es pot eliminar l'escola: existeixen sectors associats.");
+                    return false;
+                }
+            }
+        } catch (SQLException ex) {
+            System.err.println("Error comprovant dependències d'escola: " + ex.getMessage());
+            return false;
+        }
 
+        String sql = "DELETE FROM escoles WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;

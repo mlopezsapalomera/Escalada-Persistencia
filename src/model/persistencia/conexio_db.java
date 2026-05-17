@@ -39,6 +39,7 @@ public static void comprobarConexion() {
     }
 
     public static Connection getConn() {
+        comprobarConexion();
         return conn;
     }
 }

@@ -2,6 +2,7 @@ package model.dao;
 
 import model.entidades.Escalador;
 import java.util.List;
+import java.util.Map;
 
 public interface EscaladorDAO {
     /**
@@ -37,4 +38,5 @@ public interface EscaladorDAO {
      * @return true si s'ha eliminat correctament, false si no.
      */
     boolean delete(int id);
+    java.util.Map<String, java.util.List<model.entidades.Escalador>> getEscaladorsGroupedByNivell();
 }

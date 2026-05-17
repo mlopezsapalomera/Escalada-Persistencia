@@ -37,4 +37,5 @@ public interface EscolaDAO {
      * @return true si s'ha eliminat correctament, false si no.
      */
     boolean delete(int id);
+    List<model.entidades.Escola> getEscolesAmbRestriccionsActives();
 }

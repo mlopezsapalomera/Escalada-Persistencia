@@ -14,6 +14,7 @@ public class EscaladorView {
         System.out.println("3. Llistar un escalador");
         System.out.println("4. Llistar tots els escaladors");
         System.out.println("5. Eliminar escalador");
+        System.out.println("6. Mostrar escaladors agrupats per nivell");
         System.out.println("0. Tornar al menú principal");
         System.out.print("Selecciona una opció: ");
     }
@@ -54,7 +55,14 @@ public class EscaladorView {
         System.out.print("Nom de la via del nivell màxim: ");
         String nomVia = scanner.nextLine();
         System.out.print("Estil preferit (ESPORTIVA, CLASSICA, GEL): ");
-        Escalador.Estil estil = Escalador.Estil.valueOf(scanner.nextLine().toUpperCase());
+        String estilInput = scanner.nextLine().trim().toUpperCase();
+        Escalador.Estil estil;
+        try {
+            estil = Escalador.Estil.valueOf(estilInput);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Estil no vàlid, s'estableix per defecte a ESPORTIVA.");
+            estil = Escalador.Estil.ESPORTIVA;
+        }
 
         return new Escalador(nom, alias, edat, nivell, nomVia, estil);
     }

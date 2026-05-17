@@ -12,6 +12,7 @@ public class SectorView {
         System.out.println("\n--- Gestió de Sectors ---");
         System.out.println("1. Crear sector");
         System.out.println("2. Llistar tots els sectors");
+        System.out.println("3. Mostrar sectors amb més de X vies disponibles");
         System.out.println("0. Tornar al menú principal");
         System.out.print("Selecciona una opció: ");
     }

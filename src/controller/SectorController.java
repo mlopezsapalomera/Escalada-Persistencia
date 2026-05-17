@@ -38,6 +38,9 @@ public class SectorController {
                 case 2:
                     sectorView.mostrarLlista(sectorDAO.getAll());
                     break;
+                case 3:
+                    mostrarSectorsAmbMesX(scanner);
+                    break;
                 case 0:
                     System.out.println("Tornant al menú principal...");
                     break;
@@ -50,5 +53,14 @@ public class SectorController {
     // Mètode públic per si altres controladors necessiten la llista de sectors
     public List<Sector> llistarTotsSectors() {
         return sectorDAO.getAll();
+    }
+
+    private void mostrarSectorsAmbMesX(Scanner scanner) {
+        System.out.print("Mostra sectors amb més de quantes vies disponibles? X = ");
+        try {
+            int x = Integer.parseInt(scanner.nextLine().trim());
+            java.util.List<Sector> res = sectorDAO.getSectorsWithMoreThanXAvailableVies(x);
+            sectorView.mostrarLlista(res);
+        } catch (Exception ex) { System.out.println("Entrada invàlida."); }
     }
 }

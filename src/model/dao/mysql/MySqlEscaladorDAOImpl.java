@@ -58,7 +58,9 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
                     escalador.setEdat(rs.getInt("edat"));
                     escalador.setNivell(rs.getString("nivell"));
                     escalador.setNomViaNivellMaxim(rs.getString("nom_via_nivell_maxim"));
-                    escalador.setEstilPreferit(Escalador.Estil.valueOf(rs.getString("estil_preferit")));
+                    String estilStr = rs.getString("estil_preferit");
+                    if (estilStr != null) estilStr = estilStr.toUpperCase();
+                    escalador.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
                 }
             }
         } catch (SQLException e) {
@@ -85,13 +87,38 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
                 escalador.setEdat(rs.getInt("edat"));
                 escalador.setNivell(rs.getString("nivell"));
                 escalador.setNomViaNivellMaxim(rs.getString("nom_via_nivell_maxim"));
-                escalador.setEstilPreferit(Escalador.Estil.valueOf(rs.getString("estil_preferit")));
+                    String estilStr = rs.getString("estil_preferit");
+                    if (estilStr != null) estilStr = estilStr.toUpperCase();
+                    escalador.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
                 escaladors.add(escalador);
             }
         } catch (SQLException e) {
             System.err.println("Error en obtenir tots els escaladors: " + e.getMessage());
         }
         return escaladors;
+    }
+
+    @Override
+    public java.util.Map<String, java.util.List<Escalador>> getEscaladorsGroupedByNivell() {
+        java.util.Map<String, java.util.List<Escalador>> map = new java.util.HashMap<>();
+        conexio_db.comprobarConexion();
+        String sql = "SELECT * FROM escaladors ORDER BY nivell";
+        try (PreparedStatement ps = conexio_db.getConn().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Escalador e = new Escalador();
+                e.setId(rs.getInt("id"));
+                e.setNom(rs.getString("nom"));
+                e.setAlias(rs.getString("alias"));
+                e.setEdat(rs.getInt("edat"));
+                String nivell = rs.getString("nivell");
+                e.setNivell(nivell);
+                e.setNomViaNivellMaxim(rs.getString("nom_via_nivell_maxim"));
+                String estilStr = rs.getString("estil_preferit"); if (estilStr != null) estilStr = estilStr.toUpperCase(); e.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
+                map.computeIfAbsent(nivell, k -> new java.util.ArrayList<>()).add(e);
+            }
+        } catch (SQLException ex) { System.err.println("Error agrupant escaladors: " + ex.getMessage()); }
+        return map;
     }
 
     @Override

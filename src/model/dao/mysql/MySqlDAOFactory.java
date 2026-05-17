@@ -23,4 +23,9 @@ public class MySqlDAOFactory extends DAOFactory {
     public ViaDAO getViaDAO() {
         return new MySqlViaDAOImpl();
     }
+
+    @Override
+    public HistorialDAO getHistorialDAO() {
+        return new MySqlHistorialDAOImpl();
+    }
 }

@@ -24,8 +24,12 @@ public class EscaladorController {
 
         do {
             escaladorView.mostrarMenu();
-            opcio = scanner.nextInt();
-            scanner.nextLine(); // Consumir newline
+            String line = scanner.nextLine();
+            try {
+                opcio = Integer.parseInt(line.trim());
+            } catch (NumberFormatException ex) {
+                opcio = -1;
+            }
 
             switch (opcio) {
                 case 1:
@@ -39,6 +43,9 @@ public class EscaladorController {
                     break;
                 case 4:
                     llistarTotsEscaladors();
+                    break;
+                case 6:
+                    mostrarAgrupatsPerNivell();
                     break;
                 case 5:
                     eliminarEscalador(scanner);
@@ -103,6 +110,18 @@ public class EscaladorController {
             System.out.println("Escalador eliminat correctament.");
         } else {
             System.out.println("Error en eliminar l'escalador.");
+        }
+    }
+
+    private void mostrarAgrupatsPerNivell() {
+        java.util.Map<String, java.util.List<Escalador>> map = escaladorDAO.getEscaladorsGroupedByNivell();
+        if (map.isEmpty()) { System.out.println("No hi ha escaladors."); return; }
+        System.out.println("\n--- Escaladors agrupats per nivell ---");
+        for (String nivell : map.keySet()) {
+            System.out.println("Nivell: " + nivell);
+            for (Escalador e : map.get(nivell)) {
+                System.out.printf("  - ID:%d Nom:%s Alias:%s%n", e.getId(), e.getNom(), e.getAlias());
+            }
         }
     }
 }

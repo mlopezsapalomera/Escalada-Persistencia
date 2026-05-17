@@ -13,6 +13,7 @@ public class EscolaView {
         System.out.println("3. Llistar una escola");
         System.out.println("4. Llistar totes les escoles");
         System.out.println("5. Eliminar escola");
+        System.out.println("6. Llistar escoles amb restriccions actives");
         System.out.println("0. Tornar al menú principal");
         System.out.print("Selecciona una opció: ");
     }
@@ -40,14 +41,27 @@ public class EscolaView {
     }
 
     public Escola dadesCrearEscola(Scanner scanner) {
-        System.out.print("Nom: ");
-        String nom = scanner.nextLine();
+        String nom = "";
+        while (nom.trim().isEmpty()) {
+            System.out.print("Nom: ");
+            if (!scanner.hasNextLine()) return null;
+            nom = scanner.nextLine();
+        }
+
         System.out.print("Lloc (Població): ");
-        String lloc = scanner.nextLine();
+        String lloc = scanner.hasNextLine() ? scanner.nextLine() : "";
+
         System.out.print("Aproximació: ");
-        String aproximacio = scanner.nextLine();
+        String aproximacio = scanner.hasNextLine() ? scanner.nextLine() : "";
         System.out.print("Popularitat (BAIXA, MITJANA, ALTA): ");
-        Escola.Popularitat popularitat = Escola.Popularitat.valueOf(scanner.nextLine().toUpperCase());
+        String popInput = scanner.nextLine().trim().toUpperCase();
+        Escola.Popularitat popularitat;
+        try {
+            popularitat = Escola.Popularitat.valueOf(popInput);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Popularitat no vàlida, s'estableix MITJANA per defecte.");
+            popularitat = Escola.Popularitat.MITJANA;
+        }
 
         // El número de vías se inicializa a 0 por defecto en la BBDD.
         return new Escola(nom, lloc, aproximacio, 0, popularitat);

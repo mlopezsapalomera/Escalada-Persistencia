@@ -23,8 +23,22 @@ public class EscolaController {
 
         do {
             escolaView.mostrarMenu();
-            opcio = scanner.nextInt();
-            scanner.nextLine(); // Consumir newline
+            if (!scanner.hasNextLine()) {
+                System.out.println("Entrada finalitzada.");
+                break;
+            }
+            String line;
+            try {
+                line = scanner.nextLine();
+            } catch (java.util.NoSuchElementException ex) {
+                System.out.println("Entrada finalitzada.");
+                break;
+            }
+            try {
+                opcio = Integer.parseInt(line.trim());
+            } catch (NumberFormatException ex) {
+                opcio = -1;
+            }
 
             switch (opcio) {
                 case 1:
@@ -39,6 +53,9 @@ public class EscolaController {
                 case 4:
                     llistarTotesEscoles();
                     break;
+                case 6:
+                    llistarEscolesAmbRestriccions();
+                    break;
                 case 5:
                     eliminarEscola(scanner);
                     break;
@@ -52,7 +69,14 @@ public class EscolaController {
     }
 
     private void crearEscola(Scanner scanner) {
-        Escola escola = escolaView.dadesCrearEscola(scanner);
+        if (!scanner.hasNextLine()) { System.out.println("Entrada finalitzada."); return; }
+        Escola escola = null;
+        try {
+            escola = escolaView.dadesCrearEscola(scanner);
+        } catch (java.util.NoSuchElementException ex) {
+            System.out.println("Entrada finalitzada.");
+            return;
+        }
         if (escolaDAO.create(escola)) {
             System.out.println("Escola creada correctament.");
         } else {
@@ -62,8 +86,17 @@ public class EscolaController {
 
     private void modificarEscola(Scanner scanner) {
         System.out.print("Introdueix l'ID de l'escola a modificar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
+        int id;
+        try {
+            if (!scanner.hasNextLine()) { System.out.println("Entrada finalitzada."); return; }
+            id = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException ex) {
+            System.out.println("ID invàlid.");
+            return;
+        } catch (java.util.NoSuchElementException ex) {
+            System.out.println("Entrada finalitzada.");
+            return;
+        }
         Escola escola = escolaDAO.getById(id);
         if (escola != null) {
             Escola escolaModificada = escolaView.dadesModificarEscola(scanner, escola);
@@ -79,8 +112,17 @@ public class EscolaController {
 
     private void llistarUnaEscola(Scanner scanner) {
         System.out.print("Introdueix l'ID de l'escola a llistar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
+        int id;
+        try {
+            if (!scanner.hasNextLine()) { System.out.println("Entrada finalitzada."); return; }
+            id = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException ex) {
+            System.out.println("ID invàlid.");
+            return;
+        } catch (java.util.NoSuchElementException ex) {
+            System.out.println("Entrada finalitzada.");
+            return;
+        }
         Escola escola = escolaDAO.getById(id);
         if (escola != null) {
             escolaView.mostrarDetalls(escola);
@@ -96,12 +138,27 @@ public class EscolaController {
 
     private void eliminarEscola(Scanner scanner) {
         System.out.print("Introdueix l'ID de l'escola a eliminar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
+        int id;
+        try {
+            if (!scanner.hasNextLine()) { System.out.println("Entrada finalitzada."); return; }
+            id = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException ex) {
+            System.out.println("ID invàlid.");
+            return;
+        } catch (java.util.NoSuchElementException ex) {
+            System.out.println("Entrada finalitzada.");
+            return;
+        }
         if (escolaDAO.delete(id)) {
             System.out.println("Escola eliminada correctament.");
         } else {
             System.out.println("Error en eliminar l'escola.");
         }
+    }
+
+    private void llistarEscolesAmbRestriccions() {
+        java.util.List<Escola> res = escolaDAO.getEscolesAmbRestriccionsActives();
+        if (res.isEmpty()) System.out.println("No hi ha escoles amb restriccions actives.");
+        else escolaView.mostrarLlista(res);
     }
 }

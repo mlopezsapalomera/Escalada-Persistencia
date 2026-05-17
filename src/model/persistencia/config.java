@@ -13,6 +13,8 @@ public class config {
     public static final String USER = "root";
     public static final String PASS = ""; //Ninguna por que en xampp por defecto no es ninguna
     public static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+    // Opcional: ruta absoluta/local al JAR del driver MySQL si no está en el classpath
+    public static final String DRIVER_JAR = ""; // ejemplo: C:/drivers/mysql-connector-java-9.7.0.jar
 
     // Ejemplo para implementacion (Postgres)
 

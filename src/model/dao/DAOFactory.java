@@ -9,6 +9,7 @@ public abstract class DAOFactory {
     public abstract EscolaDAO getEscolaDAO();
     public abstract SectorDAO getSectorDAO(); 
     public abstract ViaDAO getViaDAO();       
+    public abstract HistorialDAO getHistorialDAO();
 
     public static DAOFactory getDAOFactory(int whichFactory) {
         switch (whichFactory) {

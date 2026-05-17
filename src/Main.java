@@ -3,17 +3,19 @@ import view.MenuView;
 
 public class Main {
     public static void main(String[] args) {
+        // Mode interactiu per defecte. No s'injecten inputs automàtics aquí.
+
         // Inicialització de vistes i controladors
         MenuView menu = new MenuView();
         EscolaController escolaCtrl = new EscolaController();
         EscaladorController escaladorCtrl = new EscaladorController();
         SectorController sectorCtrl = new SectorController();
-        ViaController viaCtrl = new ViaController(); // Nou controlador de vies
+        ViaController viaCtrl = new ViaController();
 
         int opcio;
         do {
             opcio = menu.mostrarMenuPrincipal();
-            
+
             switch (opcio) {
                 case 1:
                     escolaCtrl.gestionarEscoles();
@@ -22,7 +24,6 @@ public class Main {
                     sectorCtrl.gestionarSectors();
                     break;
                 case 3:
-                    // Activem la gestió de vies
                     viaCtrl.gestionarVies();
                     break;
                 case 4:
