@@ -2,7 +2,6 @@ package view;
 import model.entidades.*;
 import java.util.Arrays;
 import java.util.List;
-import java.util.List;
 import java.util.Scanner;
 
 public class ViaView {
@@ -125,12 +124,21 @@ public class ViaView {
                 System.out.println("-> Dades del Llarg L" + i + ":");
                 Llarg llarg = new Llarg();
                 llarg.setNumeroLlarg(i);
-                
-                llarg.setMetres(llegirEnter(sc, "   Metres del llarg L" + i + ": "));
-                
+
+                // metres: validar rang raonable
+                int metres = llegirEnterRange(sc, "   Metres del llarg L" + i + ": ", 1, 500);
+                llarg.setMetres(metres);
+
+                // grau: validar format (6a, 6a+, 7b...)
                 System.out.print("   Grau del llarg L" + i + ": ");
-                llarg.setGrau(sc.nextLine().trim());
-                
+                String grauLlarg;
+                while (true) {
+                    grauLlarg = sc.nextLine().trim();
+                    if (grauValid(grauLlarg)) break;
+                    System.out.print("   Grau no vàlid. Torna-ho a intentar (ex: 6a, 7b+): ");
+                }
+                llarg.setGrau(grauLlarg);
+
                 v.getLlistaLlargs().add(llarg);
             }
         }
@@ -219,10 +227,18 @@ public class ViaView {
                     Llarg llarg = new Llarg();
                     llarg.setNumeroLlarg(i);
                     
-                    llarg.setMetres(llegirEnter(sc, "   Metres del llarg L" + i + ": "));
-                    
+                    int metres = llegirEnterRange(sc, "   Metres del llarg L" + i + ": ", 1, 500);
+                    llarg.setMetres(metres);
+
                     System.out.print("   Grau del llarg L" + i + ": ");
-                    llarg.setGrau(sc.nextLine().trim());
+                    String grauLlarg;
+                    while (true) {
+                        grauLlarg = sc.nextLine().trim();
+                        if (grauLlarg.isEmpty()) { System.out.print("   Grau no vàlid. Torna-ho a intentar (ex: 6a, 7b+): "); continue; }
+                        if (grauValid(grauLlarg)) break;
+                        System.out.print("   Grau no vàlid. Torna-ho a intentar (ex: 6a, 7b+): ");
+                    }
+                    llarg.setGrau(grauLlarg);
                     
                     v.getLlistaLlargs().add(llarg);
                 }
@@ -256,6 +272,17 @@ public class ViaView {
             } catch (NumberFormatException ex) {
                 System.out.print("Entrada no vàlida. Torna-ho a intentar. ");
             }
+        }
+    }
+
+    private int llegirEnterRange(Scanner sc, String prompt, int min, int max) {
+        while (true) {
+            int v = llegirEnter(sc, prompt);
+            if (v < min || v > max) {
+                System.out.print("Valor fora de rang (" + min + "-" + max + "). Torna-ho a intentar. ");
+                continue;
+            }
+            return v;
         }
     }
 }
