@@ -39,11 +39,10 @@ public class ViaView {
         int idSec = readInt(sc, "Introdueix l'ID del sector: ");
         Sector sec = new Sector(); sec.setId(idSec);
         v.setSector(sec);
-        sc.nextLine(); // Buffer
 
         // 3. Dades bàsiques
         System.out.print("Nom de la via: ");
-        v.setNom(sc.nextLine());
+        v.setNom(sc.nextLine()); // readInt ja neteja el buffer ara, així que pilla el nom bé
         
         System.out.print("Grau global (ex: 6a, 7b...): ");
         String grau;
@@ -65,18 +64,16 @@ public class ViaView {
             }
         }
 
-        System.out.print("Tipus de via (1-Esportiva, 2-Clàssica, 3-Gel): ");
         int tipus = readInt(sc, "Tipus de via (1-Esportiva, 2-Clàssica, 3-Gel): ");
         if(tipus == 1) v.setEstil(Via.Estil.ESPORTIVA);
         else if(tipus == 2) v.setEstil(Via.Estil.CLASSICA);
         else v.setEstil(Via.Estil.GEL);
 
         // 4. Estat i Data (Requeriment PDF)
-        System.out.print("Estat (1-Apte, 2-Construcció, 3-Tancada): ");
         int est = readInt(sc, "Estat (1-Apte, 2-Construcció, 3-Tancada): ");
-        if(est == 1) v.setEstat(Via.Estat.APTE);
+        if (est == 1) v.setEstat(Via.Estat.APTE);
         else {
-            if(est == 2) v.setEstat(Via.Estat.CONSTRUCCIO);
+            if (est == 2) v.setEstat(Via.Estat.CONSTRUCCIO);
             else v.setEstat(Via.Estat.TANCADA);
 
             System.out.print("Fins a quina data estarà així? (YYYY-MM-DD): ");
@@ -90,18 +87,38 @@ public class ViaView {
             }
         }
 
-        // 5. Si és Esportiva, demanem detalls extres
+        // 5. ENTRADA DE DADES EXTRA SEGONS L'ESTIL
         if (v.getEstil() == Via.Estil.ESPORTIVA) {
             int llarg = readInt(sc, "Llargada total (5-30 metres): ");
             while (llarg < 5 || llarg > 30) {
                 llarg = readInt(sc, "Llargada ha de ser entre 5 i 30. Torna-ho a introduir: ");
             }
             v.setLlargadaTotal(llarg);
+            
             System.out.print("Ancoratges (spits, parabolts, químics): ");
             while (true) {
                 String a = sc.nextLine().trim().toLowerCase();
-                if (a.equals("spits") || a.equals("parabolts") || a.equals("químics") || a.equals("quimics")) { v.setAncoratges(a); break; }
+                if (a.equals("spits") || a.equals("parabolts") || a.equals("químics") || a.equals("quimics")) { 
+                    v.setAncoratges(a); 
+                    break; 
+                }
                 System.out.print("Ancoratge no vàlid. Tria entre (spits, parabolts, químics): ");
+            }
+        } else if (v.getEstil() == Via.Estil.CLASSICA || v.getEstil() == Via.Estil.GEL) {
+            int numLlargs = readInt(sc, "Quants llargs (L) té aquesta via?: ");
+            v.setLlistaLlargs(new java.util.ArrayList<>());
+
+            for (int i = 1; i <= numLlargs; i++) {
+                System.out.println("-> Dades del Llarg L" + i + ":");
+                Llarg llarg = new Llarg();
+                llarg.setNumeroLlarg(i);
+                
+                llarg.setMetres(readInt(sc, "   Metres del llarg L" + i + ": "));
+                
+                System.out.print("   Grau del llarg L" + i + ": ");
+                llarg.setGrau(sc.nextLine().trim());
+                
+                v.getLlistaLlargs().add(llarg);
             }
         }
 
@@ -110,7 +127,7 @@ public class ViaView {
 
     public Via dadesModificarVia(Via v, Scanner sc, List<Escola> escoles, List<Sector> sectors, List<Escalador> escaladors) {
         System.out.println("\n--- MODIFICAR VIA (deixa buit per mantenir) ---");
-        System.out.println("ID: " + v.getId());
+        System.out.println("ID Via a modificar: " + v.getId());
 
         System.out.print("Nom [" + v.getNom() + "]: ");
         String s = sc.nextLine().trim(); if (!s.isEmpty()) v.setNom(s);
@@ -118,29 +135,63 @@ public class ViaView {
         System.out.print("Grau global [" + v.getGrauGlobal() + "]: ");
         String grau = sc.nextLine().trim(); if (!grau.isEmpty()) v.setGrauGlobal(grau);
 
-        System.out.print("Orientació [" + (v.getOrientacio()!=null?v.getOrientacio().name():"-") + "]: ");
+        System.out.print("Orientació [" + (v.getOrientacio() != null ? v.getOrientacio().name() : "-") + "]: ");
         String o = sc.nextLine().trim(); if (!o.isEmpty()) { try { v.setOrientacio(Via.Orientacio.valueOf(o.toUpperCase())); } catch (IllegalArgumentException ignored) {} }
 
-        System.out.print("Tipus de via (1-Esportiva, 2-Clàssica, 3-Gel) [" + (v.getEstil()!=null?v.getEstil().name():"-") + "]: ");
+        System.out.print("Tipus de via (1-Esportiva, 2-Clàssica, 3-Gel) [" + (v.getEstil() != null ? v.getEstil().name() : "-") + "]: ");
         String t = sc.nextLine().trim(); if (!t.isEmpty()) {
             try {
                 int tipus = Integer.parseInt(t);
-                if(tipus == 1) v.setEstil(Via.Estil.ESPORTIVA);
-                else if(tipus == 2) v.setEstil(Via.Estil.CLASSICA);
-                else v.setEstil(Via.Estil.GEL);
+                if (tipus == 1) v.setEstil(Via.Estil.ESPORTIVA);
+                else if (tipus == 2) v.setEstil(Via.Estil.CLASSICA);
+                else if (tipus == 3) v.setEstil(Via.Estil.GEL);
             } catch (Exception ignored) {}
         }
 
-        System.out.print("Estat (1-Apte,2-Construcció,3-Tancada) [" + (v.getEstat()!=null?v.getEstat().name():"-") + "]: ");
+        System.out.print("Estat (1-Apte, 2-Construcció, 3-Tancada) [" + (v.getEstat() != null ? v.getEstat().name() : "-") + "]: ");
         String es = sc.nextLine().trim(); if (!es.isEmpty()) {
-            try { int est = Integer.parseInt(es); if (est==1) v.setEstat(Via.Estat.APTE); else if (est==2) v.setEstat(Via.Estat.CONSTRUCCIO); else v.setEstat(Via.Estat.TANCADA); } catch (Exception ignored) {}
+            try { 
+                int est = Integer.parseInt(es); 
+                if (est == 1) v.setEstat(Via.Estat.APTE); 
+                else if (est == 2) v.setEstat(Via.Estat.CONSTRUCCIO); 
+                else if (est == 3) v.setEstat(Via.Estat.TANCADA); 
+            } catch (Exception ignored) {}
+        }
+
+        if (v.getEstat() == Via.Estat.CONSTRUCCIO || v.getEstat() == Via.Estat.TANCADA) {
+            System.out.print("Data finalització estat (AAAA-MM-DD) [" + (v.getDataFinalitzacioEstat() != null ? v.getDataFinalitzacioEstat().toString() : "buit") + "]: ");
+            String dataStr = sc.nextLine().trim();
+            if (!dataStr.isEmpty()) {
+                try { v.setDataFinalitzacioEstat(java.sql.Date.valueOf(dataStr)); } catch (Exception ignored) {}
+            }
         }
 
         if (v.getEstil() == Via.Estil.ESPORTIVA) {
             System.out.print("Llargada total [" + v.getLlargadaTotal() + "]: ");
             String L = sc.nextLine().trim(); if (!L.isEmpty()) { try { v.setLlargadaTotal(Integer.parseInt(L)); } catch(Exception ignored) {} }
-            System.out.print("Ancoratges [" + (v.getAncoratges()!=null?v.getAncoratges():"-") + "]: ");
+            System.out.print("Ancoratges [" + (v.getAncoratges() != null ? v.getAncoratges() : "-") + "]: ");
             String a = sc.nextLine().trim(); if (!a.isEmpty()) v.setAncoratges(a);
+            
+        } else if (v.getEstil() == Via.Estil.CLASSICA || v.getEstil() == Via.Estil.GEL) {
+            System.out.print("Vols redefinir els llargs (L) d'aquesta via? (s/n): ");
+            String resp = sc.nextLine().trim().toLowerCase();
+            if (resp.equals("s") || resp.equals("si")) {
+                int numLlargs = readInt(sc, "Quants llargs (L) té ara aquesta via?: ");
+                v.setLlistaLlargs(new java.util.ArrayList<>());
+
+                for (int i = 1; i <= numLlargs; i++) {
+                    System.out.println("-> Dades del Llarg L" + i + ":");
+                    Llarg llarg = new Llarg();
+                    llarg.setNumeroLlarg(i);
+                    
+                    llarg.setMetres(readInt(sc, "   Metres del llarg L" + i + ": "));
+                    
+                    System.out.print("   Grau del llarg L" + i + ": ");
+                    llarg.setGrau(sc.nextLine().trim());
+                    
+                    v.getLlistaLlargs().add(llarg);
+                }
+            }
         }
 
         return v;

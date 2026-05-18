@@ -55,6 +55,33 @@ public class ConnectionFactory {
                 throw new IllegalArgumentException("Tecnología no soportada: " + config.DB_TYPE);
         }
     }
+
+    // Utility: try to locate a mysql connector jar in common locations
+    private static File findConnectorJar() {
+        // Check working dir and parents
+        try {
+            File cwd = new File(System.getProperty("user.dir"));
+            File cur = cwd;
+            while (cur != null) {
+                File[] matches = cur.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
+                if (matches != null && matches.length > 0) return matches[0];
+                // also check a 'lib' subfolder
+                File lib = new File(cur, "lib");
+                if (lib.exists()) {
+                    File[] m2 = lib.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
+                    if (m2 != null && m2.length > 0) return m2[0];
+                }
+                cur = cur.getParentFile();
+            }
+            // Check user.home
+            File home = new File(System.getProperty("user.home"));
+            if (home.exists()) {
+                File[] hmatches = home.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
+                if (hmatches != null && hmatches.length > 0) return hmatches[0];
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
 }
 
 // Shim to register drivers loaded from a custom classloader
@@ -72,31 +99,4 @@ class DriverShim implements Driver {
     public java.sql.DriverPropertyInfo[] getPropertyInfo(String u, java.util.Properties p) throws SQLException { return delegate.getPropertyInfo(u, p); }
     public boolean jdbcCompliant() { return delegate.jdbcCompliant(); }
     public java.util.logging.Logger getParentLogger() throws java.sql.SQLFeatureNotSupportedException { return delegate.getParentLogger(); }
-}
-
-// Utility: try to locate a mysql connector jar in common locations
-static File findConnectorJar() {
-    // Check working dir and parents
-    try {
-        File cwd = new File(System.getProperty("user.dir"));
-        File cur = cwd;
-        while (cur != null) {
-            File[] matches = cur.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
-            if (matches != null && matches.length > 0) return matches[0];
-            // also check a 'lib' subfolder
-            File lib = new File(cur, "lib");
-            if (lib.exists()) {
-                File[] m2 = lib.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
-                if (m2 != null && m2.length > 0) return m2[0];
-            }
-            cur = cur.getParentFile();
-        }
-        // Check user.home
-        File home = new File(System.getProperty("user.home"));
-        if (home.exists()) {
-            File[] hmatches = home.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
-            if (hmatches != null && hmatches.length > 0) return hmatches[0];
-        }
-    } catch (Exception ignored) {}
-    return null;
 }

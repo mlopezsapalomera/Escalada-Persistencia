@@ -11,6 +11,7 @@ public class Main {
         EscaladorController escaladorCtrl = new EscaladorController();
         SectorController sectorCtrl = new SectorController();
         ViaController viaCtrl = new ViaController();
+        HistorialController historialCtrl = new HistorialController();
 
         int opcio;
         do {
@@ -28,6 +29,9 @@ public class Main {
                     break;
                 case 4:
                     escaladorCtrl.gestionarEscaladors();
+                    break;
+                case 5:
+                    historialCtrl.gestionarHistorial(new java.util.Scanner(System.in)); 
                     break;
                 case 0:
                     System.out.println("Adéu!");
