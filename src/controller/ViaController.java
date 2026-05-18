@@ -79,12 +79,6 @@ public class ViaController {
             return;
         }
 
-        // Validaciones básicas antes de persistir
-        if (v == null) {
-            System.out.println("Entrada cancel·lada o invàlida.");
-            return;
-        }
-
         // Comprovar creador
         boolean creadorOk = escaladors.stream().anyMatch(e -> e.getId() == (v.getCreadaPer() != null ? v.getCreadaPer().getId() : -1));
         if (!creadorOk) {
@@ -169,14 +163,16 @@ public class ViaController {
     }
 
     private boolean validarGrau(String grau, Via.Estil estil) {
-        String regex = "^[4-9][abc]?\\+?$";
-        if (!grau.matches(regex)) {
+        if (!model.util.GradeUtils.isValid(grau)) {
             System.out.println("Format de grau no vàlid.");
             return false;
         }
-        if (estil == Via.Estil.GEL && grau.compareTo("8b") > 0) {
-            System.out.println("Màxim grau en gel és 8b.");
-            return false;
+        if (estil == Via.Estil.GEL) {
+            // comparar amb ordre definit
+            if (!model.util.GradeUtils.lessOrEqual(grau, "8b")) {
+                System.out.println("Màxim grau en gel és 8b.");
+                return false;
+            }
         }
         return true;
     }

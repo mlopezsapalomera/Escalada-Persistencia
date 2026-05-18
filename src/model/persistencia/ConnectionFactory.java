@@ -7,8 +7,6 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.lang.reflect.InvocationTargetException;
 
 public class ConnectionFactory {

@@ -57,6 +57,17 @@ public class MySqlViaDAOImpl implements ViaDAO {
                         } else if (v.getLlistaLlargs() != null && !v.getLlistaLlargs().isEmpty()) {
                             insertarLlargs(v, conn);
                         }
+                        // Actualitzar comptadors num_vies en escola i sector
+                        String incEscola = "UPDATE escoles SET num_vies = num_vies + 1 WHERE id = ?";
+                        String incSector = "UPDATE sectors SET num_vies = num_vies + 1 WHERE id = ?";
+                        try (PreparedStatement pIncE = conn.prepareStatement(incEscola)) {
+                            pIncE.setInt(1, v.getSector().getEscola().getId());
+                            pIncE.executeUpdate();
+                        }
+                        try (PreparedStatement pIncS = conn.prepareStatement(incSector)) {
+                            pIncS.setInt(1, v.getSector().getId());
+                            pIncS.executeUpdate();
+                        }
                     }
                 }
             }
@@ -99,38 +110,35 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public Via getById(int id) {
-        // ensure estados are up-to-date
         refreshEstados();
-        String sql = "SELECT * FROM vies WHERE id = ?";
+        String sql = "SELECT v.*, d.llargada AS det_llargada, d.ancoratge AS det_ancoratge FROM vies v LEFT JOIN detalls_esportiva d ON v.id = d.id_via WHERE v.id = ?";
         conexio_db.comprobarConexion();
         try (PreparedStatement ps = conexio_db.getConn().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Via v = mapResultSetToVia(rs);
-                    // load subtype details
                     if (v.getEstil() == Via.Estil.ESPORTIVA) {
-                        String sqlEsp = "SELECT * FROM detalls_esportiva WHERE id_via = ?";
-                        try (PreparedStatement p2 = conexio_db.getConn().prepareStatement(sqlEsp)) {
-                            p2.setInt(1, id);
-                            try (ResultSet r2 = p2.executeQuery()) {
-                                if (r2.next()) {
-                                    v.setLlargadaTotal(r2.getInt("llargada"));
-                                    v.setAncoratges(r2.getString("ancoratge"));
-                                }
-                            }
-                        }
+                        v.setLlargadaTotal(rs.getInt("det_llargada"));
+                        v.setAncoratges(rs.getString("det_ancoratge"));
                     } else {
-                        String sqlLlarg = "SELECT * FROM llargs WHERE id_via = ? ORDER BY ordre_llarg";
-                        try (PreparedStatement p3 = conexio_db.getConn().prepareStatement(sqlLlarg)) {
-                            p3.setInt(1, id);
-                            try (ResultSet r3 = p3.executeQuery()) {
-                                List<Llarg> llist = new ArrayList<>();
-                                while (r3.next()) {
-                                    Llarg l = new Llarg(r3.getInt("llargada"), r3.getString("grau"), Via.Orientacio.valueOf(r3.getString("ancoratge") != null ? r3.getString("ancoratge").toUpperCase() : "N"));
-                                    llist.add(l);
+                        String sqlL = "SELECT * FROM llargs WHERE id_via = ? ORDER BY ordre_llarg";
+                        try (PreparedStatement ps2 = conexio_db.getConn().prepareStatement(sqlL)) {
+                            ps2.setInt(1, id);
+                            try (ResultSet rs2 = ps2.executeQuery()) {
+                                List<Llarg> llista = new ArrayList<>();
+                                while (rs2.next()) {
+                                    Llarg l = new Llarg();
+                                    l.setNumeroLlarg(rs2.getInt("ordre_llarg"));
+                                    l.setMetres(rs2.getInt("llargada"));
+                                    l.setGrau(rs2.getString("grau"));
+                                    String an = rs2.getString("ancoratge");
+                                    if (an != null) {
+                                        try { l.setOrientacio(Via.Orientacio.valueOf(an.toUpperCase())); } catch (IllegalArgumentException ignored) {}
+                                    }
+                                    llista.add(l);
                                 }
-                                v.setLlistaLlargs(llist);
+                                v.setLlistaLlargs(llista);
                             }
                         }
                     }
@@ -138,7 +146,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
                 }
             }
         } catch (SQLException ex) {
-            System.err.println("Error al obtenir via per ID: " + ex.getMessage());
+            System.err.println("Error obteniendo via por id: " + ex.getMessage());
         }
         return null;
     }
@@ -165,79 +173,183 @@ public class MySqlViaDAOImpl implements ViaDAO {
     public boolean update(Via via) {
         String sql = "UPDATE vies SET id_sector = ?, id_escola = ?, id_creador = ?, nom = ?, grau_global = ?, orientacio = ?, estat = ?, data_finalitzacio_estat = ?, tipus_roca = ?, tipus_via = ?, restriccions = ? WHERE id = ?";
         conexio_db.comprobarConexion();
-        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
-            pstmt.setInt(1, via.getSector().getId());
-            pstmt.setInt(2, via.getSector().getEscola().getId());
-            pstmt.setInt(3, via.getCreadaPer().getId());
-            pstmt.setString(4, via.getNom());
-            pstmt.setString(5, via.getGrauGlobal());
-            pstmt.setString(6, via.getOrientacio() != null ? via.getOrientacio().name() : null);
-            pstmt.setString(7, via.getEstat() != null ? via.getEstat().name().toLowerCase() : "apte");
-            pstmt.setDate(8, via.getDataFinalitzacioEstat());
-            pstmt.setString(9, via.getTipusRoca() != null ? via.getTipusRoca().toLowerCase() : null);
-            pstmt.setString(10, via.getEstil() != null ? via.getEstil().name().toLowerCase() : null);
-            pstmt.setString(11, via.getRestriccions());
-            pstmt.setInt(12, via.getId());
+        Connection conn = conexio_db.getConn();
 
-            int updated = pstmt.executeUpdate();
-            if (updated == 0) return false;
-
-            // subtype handling: delete and reinsert llargs/detalls for simplicity
-            if (via.getEstil() == Via.Estil.ESPORTIVA) {
-                String delL = "DELETE FROM llargs WHERE id_via = ?";
-                try (PreparedStatement d = conexio_db.getConn().prepareStatement(delL)) {
-                    d.setInt(1, via.getId());
-                    d.executeUpdate();
-                }
-                String upEsp = "REPLACE INTO detalls_esportiva (id_via, llargada, ancoratge) VALUES (?, ?, ?)";
-                try (PreparedStatement p2 = conexio_db.getConn().prepareStatement(upEsp)) {
-                    p2.setInt(1, via.getId());
-                    p2.setInt(2, via.getLlargadaTotal());
-                    p2.setString(3, via.getAncoratges());
-                    p2.executeUpdate();
-                }
-            } else {
-                String del = "DELETE FROM detalls_esportiva WHERE id_via = ?";
-                try (PreparedStatement d2 = conexio_db.getConn().prepareStatement(del)) {
-                    d2.setInt(1, via.getId());
-                    d2.executeUpdate();
-                }
-                String delL = "DELETE FROM llargs WHERE id_via = ?";
-                try (PreparedStatement d3 = conexio_db.getConn().prepareStatement(delL)) {
-                    d3.setInt(1, via.getId());
-                    d3.executeUpdate();
-                }
-                String sqlLlarg = "INSERT INTO llargs (id_via, ordre_llarg, llargada, grau, ancoratge) VALUES (?, ?, ?, ?, ?)";
-                int ordre = 1;
-                for (Llarg l : via.getLlistaLlargs()) {
-                    try (PreparedStatement p4 = conexio_db.getConn().prepareStatement(sqlLlarg)) {
-                        p4.setInt(1, via.getId());
-                        p4.setInt(2, ordre++);
-                        p4.setInt(3, l.getLlargada());
-                        p4.setString(4, l.getDificultat());
-                        p4.setString(5, l.getOrientacio() != null ? l.getOrientacio().name() : null);
-                        p4.executeUpdate();
-                    }
+        // Llegir l'estat i ubicacio actual per decidir ajustos de data i num_vies
+        String currentSql = "SELECT estat, data_finalitzacio_estat, id_sector, id_escola FROM vies WHERE id = ?";
+        String currentEstat = null;
+        java.sql.Date currentDate = null;
+        int currentSectorId = -1;
+        int currentEscolaId = -1;
+        try (PreparedStatement psCur = conn.prepareStatement(currentSql)) {
+            psCur.setInt(1, via.getId());
+            try (ResultSet rsCur = psCur.executeQuery()) {
+                if (rsCur.next()) {
+                    currentEstat = rsCur.getString("estat");
+                    currentDate = rsCur.getDate("data_finalitzacio_estat");
+                    currentSectorId = rsCur.getInt("id_sector");
+                    currentEscolaId = rsCur.getInt("id_escola");
                 }
             }
-
-            return true;
         } catch (SQLException ex) {
-            System.err.println("Error al actualitzar via: " + ex.getMessage());
+            System.err.println("Error llegint estat/ubicacio actual de la via: " + ex.getMessage());
+            return false;
         }
-        return false;
+
+        try {
+            conn.setAutoCommit(false);
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, via.getSector().getId());
+                pstmt.setInt(2, via.getSector().getEscola().getId());
+                pstmt.setInt(3, via.getCreadaPer().getId());
+                pstmt.setString(4, via.getNom());
+                pstmt.setString(5, via.getGrauGlobal());
+                pstmt.setString(6, via.getOrientacio() != null ? via.getOrientacio().name() : null);
+                pstmt.setString(7, via.getEstat() != null ? via.getEstat().name().toLowerCase() : "apte");
+
+                // Si s'està passant a APTE i no s'ha proporcionat data, establir la data a avui
+                java.sql.Date dateToSet = via.getDataFinalitzacioEstat();
+                boolean wasNotApte = currentEstat != null && !"apte".equalsIgnoreCase(currentEstat);
+                if (via.getEstat() == Via.Estat.APTE) {
+                    if (dateToSet == null) {
+                        if (wasNotApte) dateToSet = new java.sql.Date(System.currentTimeMillis());
+                        else dateToSet = currentDate; // conservar la data existent si ja era apte
+                    }
+                }
+
+                pstmt.setDate(8, dateToSet);
+                pstmt.setString(9, via.getTipusRoca() != null ? via.getTipusRoca().toLowerCase() : null);
+                pstmt.setString(10, via.getEstil() != null ? via.getEstil().name().toLowerCase() : null);
+                pstmt.setString(11, via.getRestriccions());
+                pstmt.setInt(12, via.getId());
+
+                int updated = pstmt.executeUpdate();
+                if (updated == 0) {
+                    conn.rollback();
+                    return false;
+                }
+
+                // Ajustar num_vies si ha canviat d'escola o sector
+                int newSectorId = via.getSector().getId();
+                int newEscolaId = via.getSector().getEscola().getId();
+                String incEscola = "UPDATE escoles SET num_vies = num_vies + 1 WHERE id = ?";
+                String incSector = "UPDATE sectors SET num_vies = num_vies + 1 WHERE id = ?";
+                String decEscola = "UPDATE escoles SET num_vies = GREATEST(num_vies - 1, 0) WHERE id = ?";
+                String decSector = "UPDATE sectors SET num_vies = GREATEST(num_vies - 1, 0) WHERE id = ?";
+
+                if (currentEscolaId != -1 && currentEscolaId != newEscolaId) {
+                    try (PreparedStatement d = conn.prepareStatement(decEscola)) { d.setInt(1, currentEscolaId); d.executeUpdate(); }
+                    try (PreparedStatement i = conn.prepareStatement(incEscola)) { i.setInt(1, newEscolaId); i.executeUpdate(); }
+                }
+                if (currentSectorId != -1 && currentSectorId != newSectorId) {
+                    try (PreparedStatement d = conn.prepareStatement(decSector)) { d.setInt(1, currentSectorId); d.executeUpdate(); }
+                    try (PreparedStatement i = conn.prepareStatement(incSector)) { i.setInt(1, newSectorId); i.executeUpdate(); }
+                }
+
+                // subtype handling: delete and reinsert llargs/detalls for simplicity
+                if (via.getEstil() == Via.Estil.ESPORTIVA) {
+                    String delL = "DELETE FROM llargs WHERE id_via = ?";
+                    try (PreparedStatement d = conn.prepareStatement(delL)) {
+                        d.setInt(1, via.getId());
+                        d.executeUpdate();
+                    }
+                    String upEsp = "REPLACE INTO detalls_esportiva (id_via, llargada, ancoratge) VALUES (?, ?, ?)";
+                    try (PreparedStatement p2 = conn.prepareStatement(upEsp)) {
+                        p2.setInt(1, via.getId());
+                        p2.setInt(2, via.getLlargadaTotal());
+                        p2.setString(3, via.getAncoratges());
+                        p2.executeUpdate();
+                    }
+                } else {
+                    String del = "DELETE FROM detalls_esportiva WHERE id_via = ?";
+                    try (PreparedStatement d2 = conn.prepareStatement(del)) {
+                        d2.setInt(1, via.getId());
+                        d2.executeUpdate();
+                    }
+                    String delL = "DELETE FROM llargs WHERE id_via = ?";
+                    try (PreparedStatement d3 = conn.prepareStatement(delL)) {
+                        d3.setInt(1, via.getId());
+                        d3.executeUpdate();
+                    }
+                    String sqlLlarg = "INSERT INTO llargs (id_via, ordre_llarg, llargada, grau, ancoratge) VALUES (?, ?, ?, ?, ?)";
+                    int ordre = 1;
+                    for (Llarg l : via.getLlistaLlargs()) {
+                        try (PreparedStatement p4 = conn.prepareStatement(sqlLlarg)) {
+                            p4.setInt(1, via.getId());
+                            p4.setInt(2, ordre++);
+                            p4.setInt(3, l.getLlargada());
+                            p4.setString(4, l.getDificultat());
+                            p4.setString(5, l.getOrientacio() != null ? l.getOrientacio().name() : null);
+                            p4.executeUpdate();
+                        }
+                    }
+                }
+
+                conn.commit();
+                return true;
+            }
+        } catch (SQLException ex) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("Error al actualitzar via: " + ex.getMessage());
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+        }
     }
 
     @Override
     public boolean delete(int id) {
-        String sql = "DELETE FROM vies WHERE id = ?";
         conexio_db.comprobarConexion();
-        try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            return pstmt.executeUpdate() > 0;
+        Connection conn = conexio_db.getConn();
+
+        String select = "SELECT id_escola, id_sector FROM vies WHERE id = ?";
+        String del = "DELETE FROM vies WHERE id = ?";
+        String decEscola = "UPDATE escoles SET num_vies = GREATEST(num_vies - 1, 0) WHERE id = ?";
+        String decSector = "UPDATE sectors SET num_vies = GREATEST(num_vies - 1, 0) WHERE id = ?";
+
+        int idEscola = -1, idSector = -1;
+        try (PreparedStatement ps = conn.prepareStatement(select)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    idEscola = rs.getInt("id_escola");
+                    idSector = rs.getInt("id_sector");
+                } else {
+                    return false; // vía no encontrada
+                }
+            }
         } catch (SQLException ex) {
-            System.err.println("Error al eliminar via: " + ex.getMessage());
+            System.err.println("Error leyendo vía antes de eliminar: " + ex.getMessage());
             return false;
+        }
+
+        try {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pDel = conn.prepareStatement(del)) {
+                pDel.setInt(1, id);
+                int deleted = pDel.executeUpdate();
+                if (deleted == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            if (idEscola != -1) {
+                try (PreparedStatement pE = conn.prepareStatement(decEscola)) { pE.setInt(1, idEscola); pE.executeUpdate(); }
+            }
+            if (idSector != -1) {
+                try (PreparedStatement pS = conn.prepareStatement(decSector)) { pS.setInt(1, idSector); pS.executeUpdate(); }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException ex) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("Error al eliminar vía transaccionalmente: " + ex.getMessage());
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
         }
     }
 
@@ -263,13 +375,39 @@ public class MySqlViaDAOImpl implements ViaDAO {
     @Override
     public List<Via> buscarPorDificultat(String minGrau, String maxGrau) {
         List<Via> res = new ArrayList<>();
-        // ensure estados are up-to-date
         refreshEstados();
-        String sql = "SELECT * FROM vies WHERE grau_global >= ? AND grau_global <= ?";
+
+        // Llista de graus tal com és a la BD (ordre determinat)
+        String gradeList = "'4','4+','5','5+','6a','6a+','6b','6b+','6c','6c+','7a','7a+','7b','7b+','7c','7c+','8a','8a+','8b','8b+','8c','8c+','9a','9a+','9b','9b+','9c','9c+'";
+
+        // Primer validar que els graus introduïts existeixen en l'ordre
+        String checkSql = "SELECT FIELD(?, " + gradeList + ") AS p1, FIELD(?, " + gradeList + ") AS p2";
         conexio_db.comprobarConexion();
+        try (PreparedStatement cp = conexio_db.getConn().prepareStatement(checkSql)) {
+            cp.setString(1, minGrau);
+            cp.setString(2, maxGrau);
+            try (ResultSet cr = cp.executeQuery()) {
+                if (cr.next()) {
+                    int p1 = cr.getInt("p1");
+                    int p2 = cr.getInt("p2");
+                    if (p1 == 0 || p2 == 0) {
+                        System.err.println("Grau mínim o màxim no vàlid: " + minGrau + " - " + maxGrau);
+                        return res;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+            return res;
+        }
+
+        // Filtrar amb FIELD(...) i LEAST/GREATEST per acceptar rang en qualsevol ordre
+        String sql = "SELECT * FROM vies WHERE FIELD(grau_global, " + gradeList + ") BETWEEN LEAST(FIELD(?, " + gradeList + "), FIELD(?, " + gradeList + ")) AND GREATEST(FIELD(?, " + gradeList + "), FIELD(?, " + gradeList + "))";
         try (PreparedStatement ps = conexio_db.getConn().prepareStatement(sql)) {
             ps.setString(1, minGrau);
             ps.setString(2, maxGrau);
+            ps.setString(3, minGrau);
+            ps.setString(4, maxGrau);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) res.add(mapResultSetToVia(rs));
             }
@@ -361,7 +499,8 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public void refreshEstados() {
-        String sql = "UPDATE vies SET estat = 'apte', data_finalitzacio_estat = NULL WHERE data_finalitzacio_estat IS NOT NULL AND data_finalitzacio_estat <= CURDATE()";
+        // No borrar la data_finalitzacio_estat: la mantenemos per a consultes "han passat a apte recentment"
+        String sql = "UPDATE vies SET estat = 'apte' WHERE data_finalitzacio_estat IS NOT NULL AND data_finalitzacio_estat <= CURDATE()";
         conexio_db.comprobarConexion();
         try (PreparedStatement ps = conexio_db.getConn().prepareStatement(sql)) {
             ps.executeUpdate();

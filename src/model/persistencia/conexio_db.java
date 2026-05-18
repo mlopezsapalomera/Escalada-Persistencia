@@ -27,7 +27,7 @@ public static void comprobarConexion() {
         }
     }
 
-    private static void desconectar() {
+    public static void desconectar() {
         try {
             if (conn != null && !conn.isClosed()) {
                 conn.close();

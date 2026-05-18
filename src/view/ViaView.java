@@ -1,6 +1,7 @@
 package view;
 
 import model.entidades.*;
+import model.util.GradeUtils;
 import java.util.List;
 import java.util.Scanner;
 
@@ -48,7 +49,7 @@ public class ViaView {
         String grau;
         while (true) {
             grau = sc.nextLine().trim();
-            if (grau.matches("^[4-9](?:a|a\\+|b|b\\+|c|c\\+)?$")) break;
+            if (GradeUtils.isValid(grau)) break;
             System.out.print("Grau no vàlid. Torna-ho a intentar (ex: 6a, 7b+): ");
         }
         v.setGrauGlobal(grau);
@@ -76,13 +77,23 @@ public class ViaView {
             if (est == 2) v.setEstat(Via.Estat.CONSTRUCCIO);
             else v.setEstat(Via.Estat.TANCADA);
 
-            System.out.print("Fins a quina data estarà així? (YYYY-MM-DD): ");
+            System.out.print("Fins a quina data estarà així? Introdueix YYYY-MM-DD o número de dies des d'avui: ");
             while (true) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) { System.out.print("Introdueix una data o nombre de dies: "); continue; }
+                // Si és un número, interpretem com a dies a partir d'avui
                 try {
-                    v.setDataFinalitzacioEstat(java.sql.Date.valueOf(sc.nextLine().trim()));
+                    int dies = Integer.parseInt(line);
+                    long millis = System.currentTimeMillis() + (long)dies * 24 * 60 * 60 * 1000;
+                    v.setDataFinalitzacioEstat(new java.sql.Date(millis));
                     break;
-                } catch (IllegalArgumentException ex) {
-                    System.out.print("Data no vàlida. Introdueix YYYY-MM-DD: ");
+                } catch (NumberFormatException nfe) {
+                    try {
+                        v.setDataFinalitzacioEstat(java.sql.Date.valueOf(line));
+                        break;
+                    } catch (IllegalArgumentException ex) {
+                        System.out.print("Entrada no vàlida. Introdueix YYYY-MM-DD o dies (ex: 7): ");
+                    }
                 }
             }
         }
@@ -133,7 +144,9 @@ public class ViaView {
         String s = sc.nextLine().trim(); if (!s.isEmpty()) v.setNom(s);
 
         System.out.print("Grau global [" + v.getGrauGlobal() + "]: ");
-        String grau = sc.nextLine().trim(); if (!grau.isEmpty()) v.setGrauGlobal(grau);
+        String grau = sc.nextLine().trim(); if (!grau.isEmpty()) {
+            if (GradeUtils.isValid(grau)) v.setGrauGlobal(grau); else System.out.println("Grau invàlid. S'ignora el canvi.");
+        }
 
         System.out.print("Orientació [" + (v.getOrientacio() != null ? v.getOrientacio().name() : "-") + "]: ");
         String o = sc.nextLine().trim(); if (!o.isEmpty()) { try { v.setOrientacio(Via.Orientacio.valueOf(o.toUpperCase())); } catch (IllegalArgumentException ignored) {} }
@@ -159,10 +172,17 @@ public class ViaView {
         }
 
         if (v.getEstat() == Via.Estat.CONSTRUCCIO || v.getEstat() == Via.Estat.TANCADA) {
-            System.out.print("Data finalització estat (AAAA-MM-DD) [" + (v.getDataFinalitzacioEstat() != null ? v.getDataFinalitzacioEstat().toString() : "buit") + "]: ");
+            System.out.print("Data finalització estat (AAAA-MM-DD) o dies a partir d'avui [" + (v.getDataFinalitzacioEstat() != null ? v.getDataFinalitzacioEstat().toString() : "buit") + "]: ");
             String dataStr = sc.nextLine().trim();
             if (!dataStr.isEmpty()) {
-                try { v.setDataFinalitzacioEstat(java.sql.Date.valueOf(dataStr)); } catch (Exception ignored) {}
+                // Acceptar nombre de dies o data
+                try {
+                    int dies = Integer.parseInt(dataStr);
+                    long millis = System.currentTimeMillis() + (long)dies * 24 * 60 * 60 * 1000;
+                    v.setDataFinalitzacioEstat(new java.sql.Date(millis));
+                } catch (NumberFormatException nfe) {
+                    try { v.setDataFinalitzacioEstat(java.sql.Date.valueOf(dataStr)); } catch (Exception ignored) {}
+                }
             }
         }
 

@@ -13,6 +13,10 @@ public class Main {
         ViaController viaCtrl = new ViaController();
         HistorialController historialCtrl = new HistorialController();
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            model.persistencia.conexio_db.desconectar();
+        }));
+
         int opcio;
         do {
             opcio = menu.mostrarMenuPrincipal();
