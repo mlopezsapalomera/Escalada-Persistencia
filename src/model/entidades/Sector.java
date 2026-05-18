@@ -1,10 +1,9 @@
 package model.entidades;
-
 import java.math.BigDecimal;
 
 public class Sector {
     private int id;
-    private Escola escola; // Changed from idEscola to Escola object
+    private Escola escola;
     private String nom;
     private BigDecimal latitud;
     private BigDecimal longitud;

@@ -1,5 +1,4 @@
 package view;
-
 import model.entidades.Escola;
 import java.util.List;
 import java.util.Scanner;

@@ -1,5 +1,4 @@
 package view;
-
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
@@ -7,19 +6,19 @@ import java.util.Scanner;
 
 public class HistorialView {
 
-    public int readEscaladorId(Scanner sc) {
+    public int llegirIdEscalador(Scanner sc) {
         System.out.print("ID escalador: ");
         try {
             return Integer.parseInt(sc.nextLine().trim());
         } catch (Exception e) { return -1; }
     }
 
-    public int readViaId(Scanner sc) {
+    public int llegirIdVia(Scanner sc) {
         System.out.print("ID via: ");
         try { return Integer.parseInt(sc.nextLine().trim()); } catch (Exception e) { return -1; }
     }
 
-    public Date readDateOrToday(Scanner sc) {
+    public Date llegirDataOAvui(Scanner sc) {
         System.out.print("Data ascensio (YYYY-MM-DD) [deixa buit = avui]: ");
         String s = sc.nextLine().trim();
         if (s.isEmpty()) return new Date(System.currentTimeMillis());

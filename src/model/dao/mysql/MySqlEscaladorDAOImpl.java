@@ -1,5 +1,4 @@
 package model.dao.mysql;
-
 import model.dao.EscaladorDAO;
 import model.entidades.Escalador;
 import model.persistencia.conexio_db;
@@ -11,7 +10,7 @@ import java.util.List;
 public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
-    public boolean create(Escalador escalador) {
+    public boolean crear(Escalador escalador) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "INSERT INTO escaladors (nom, alias, edat, nivell, nom_via_nivell_maxim, estil_preferit) VALUES (?, ?, ?, ?, ?, ?)";
@@ -41,7 +40,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
     }
 
     @Override
-    public Escalador getById(int id) {
+    public Escalador obtenirPerId(int id) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escaladors WHERE id = ?";
@@ -70,7 +69,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
     }
 
     @Override
-    public List<Escalador> getAll() {
+    public List<Escalador> obtenirTots() {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escaladors";
@@ -99,7 +98,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
     }
 
     @Override
-    public java.util.Map<String, java.util.List<Escalador>> getEscaladorsGroupedByNivell() {
+    public java.util.Map<String, java.util.List<Escalador>> obtenirEscaladorsAgrupatsPerNivell() {
         java.util.Map<String, java.util.List<Escalador>> map = new java.util.HashMap<>();
         conexio_db.comprobarConexion();
         String sql = "SELECT * FROM escaladors ORDER BY nivell";
@@ -122,7 +121,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
     }
 
     @Override
-    public boolean update(Escalador escalador) {
+    public boolean actualitzar(Escalador escalador) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "UPDATE escaladors SET nom = ?, alias = ?, edat = ?, nivell = ?, nom_via_nivell_maxim = ?, estil_preferit = ? WHERE id = ?";
@@ -144,7 +143,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
     }
 
     @Override
-    public boolean delete(int id) {
+    public boolean eliminar(int id) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "DELETE FROM escaladors WHERE id = ?";

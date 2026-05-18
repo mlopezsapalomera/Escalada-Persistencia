@@ -1,5 +1,4 @@
 package model.entidades;
-
 public class ViaEsportiva extends Via {
 
     public enum Ancoratge {

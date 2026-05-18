@@ -1,5 +1,4 @@
 package model.entidades;
-
 public class Escola {
     private int id;
     private String nom;

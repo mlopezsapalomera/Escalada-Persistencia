@@ -1,5 +1,4 @@
 package controller;
-
 import model.dao.DAOFactory;
 import model.dao.HistorialDAO;
 import view.HistorialView;
@@ -11,37 +10,42 @@ import java.util.Scanner;
 
 public class HistorialController {
 
-    private final HistorialDAO historialDAO = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getHistorialDAO();
+    private final HistorialDAO historialDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirHistorialDAO();
     private final HistorialView view = new HistorialView();
+    private final Scanner scanner;
 
-    public void gestionarHistorial(Scanner sc) {
+    public HistorialController(Scanner scanner) {
+        this.scanner = scanner;
+    }
+
+    public void gestionarHistorial() {
         System.out.println("--- Gestió Historial ---");
         System.out.println("1. Afegir ascensió");
         System.out.println("2. Llistar ascensos per escalador");
         System.out.println("3. Llistar ascensos per via");
         System.out.print("Opció: ");
-        String line = sc.nextLine();
+        String line = scanner.nextLine();
         int op = -1;
         try { op = Integer.parseInt(line.trim()); } catch (Exception ignored) {}
         switch (op) {
             case 1:
-                int idE = view.readEscaladorId(sc);
-                int idV = view.readViaId(sc);
-                Date d = view.readDateOrToday(sc);
+                int idE = view.llegirIdEscalador(scanner);
+                int idV = view.llegirIdVia(scanner);
+                Date d = view.llegirDataOAvui(scanner);
                 if (idE <= 0 || idV <= 0) { System.out.println("IDs invàlids."); break; }
-                boolean ok = historialDAO.addAscensio(idE, idV, d);
+                boolean ok = historialDAO.afegirAscensio(idE, idV, d);
                 System.out.println(ok ? "Ascensió afegida." : "Error afegint ascensió.");
                 break;
             case 2:
-                int idEsc = view.readEscaladorId(sc);
+                int idEsc = view.llegirIdEscalador(scanner);
                 if (idEsc <= 0) { System.out.println("ID invàlid."); break; }
-                List<Map<String,Object>> rows = historialDAO.getAscensosByEscalador(idEsc);
+                List<Map<String,Object>> rows = historialDAO.obtenirAscensosPerEscalador(idEsc);
                 view.mostrarAscensosPerEscalador(rows);
                 break;
             case 3:
-                int idVia = view.readViaId(sc);
+                int idVia = view.llegirIdVia(scanner);
                 if (idVia <= 0) { System.out.println("ID invàlid."); break; }
-                List<Map<String,Object>> rows2 = historialDAO.getAscensosByVia(idVia);
+                List<Map<String,Object>> rows2 = historialDAO.obtenirAscensosPerVia(idVia);
                 view.mostrarAscensosPerVia(rows2);
                 break;
             default:

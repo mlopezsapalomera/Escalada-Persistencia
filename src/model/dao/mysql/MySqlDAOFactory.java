@@ -1,31 +1,30 @@
 package model.dao.mysql;
-
 import model.dao.*;
 
 public class MySqlDAOFactory extends DAOFactory {
 
     @Override
-    public EscaladorDAO getEscaladorDAO() {
+    public EscaladorDAO obtenirEscaladorDAO() {
         return new MySqlEscaladorDAOImpl();
     }
 
     @Override
-    public EscolaDAO getEscolaDAO() {
+    public EscolaDAO obtenirEscolaDAO() {
         return new MySqlEscolaDAOImpl();
     }
 
     @Override
-    public SectorDAO getSectorDAO() {
+    public SectorDAO obtenirSectorDAO() {
         return new MySqlSectorDAOImpl();
     }
 
     @Override
-    public ViaDAO getViaDAO() {
+    public ViaDAO obtenirViaDAO() {
         return new MySqlViaDAOImpl();
     }
 
     @Override
-    public HistorialDAO getHistorialDAO() {
+    public HistorialDAO obtenirHistorialDAO() {
         return new MySqlHistorialDAOImpl();
     }
 }

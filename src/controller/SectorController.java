@@ -1,5 +1,4 @@
 package controller;
-
 import model.entidades.Sector;
 import model.entidades.Escola;
 import model.dao.DAOFactory;
@@ -11,35 +10,38 @@ import java.util.Scanner;
 
 public class SectorController {
 
-    private final SectorDAO sectorDAO = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getSectorDAO();
+    private final SectorDAO sectorDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirSectorDAO();
     private final SectorView sectorView = new SectorView();
+    private final Scanner scanner;
+
+    public SectorController(Scanner scanner) {
+        this.scanner = scanner;
+    }
 
     public void gestionarSectors() {
-        Scanner scanner = new Scanner(System.in);
         int opcio;
         do {
             sectorView.mostrarMenu();
-            opcio = scanner.nextInt();
-            scanner.nextLine();
+            opcio = Integer.parseInt(scanner.nextLine().trim());
             switch (opcio) {
                 case 1:
-                    List<Escola> escoles = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscolaDAO().getAll();
+                    List<Escola> escoles = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscolaDAO().obtenirTots();
                     if (escoles.isEmpty()) {
                         System.out.println("Error: No pots crear un sector sense crear primer una Escola!");
                         break;
                     }
                     Sector s = sectorView.dadesCrearSector(scanner, escoles);
-                    if (sectorDAO.create(s)) {
+                    if (sectorDAO.crear(s)) {
                         System.out.println("Sector creat correctament!");
                     } else {
                         System.out.println("Error en crear el sector.");
                     }
                     break;
                 case 2:
-                    sectorView.mostrarLlista(sectorDAO.getAll());
+                    sectorView.mostrarLlista(sectorDAO.obtenirTots());
                     break;
                 case 3:
-                    mostrarSectorsAmbMesX(scanner);
+                    mostrarSectorsAmbMesX();
                     break;
                 case 0:
                     System.out.println("Tornant al menú principal...");
@@ -52,14 +54,14 @@ public class SectorController {
     
     // Mètode públic per si altres controladors necessiten la llista de sectors
     public List<Sector> llistarTotsSectors() {
-        return sectorDAO.getAll();
+        return sectorDAO.obtenirTots();
     }
 
-    private void mostrarSectorsAmbMesX(Scanner scanner) {
+    private void mostrarSectorsAmbMesX() {
         System.out.print("Mostra sectors amb més de quantes vies disponibles? X = ");
         try {
             int x = Integer.parseInt(scanner.nextLine().trim());
-            java.util.List<Sector> res = sectorDAO.getSectorsWithMoreThanXAvailableVies(x);
+            java.util.List<Sector> res = sectorDAO.obtenirSectorsAmbMesDeXViesDisponibles(x);
             sectorView.mostrarLlista(res);
         } catch (Exception ex) { System.out.println("Entrada invàlida."); }
     }

@@ -1,5 +1,4 @@
 package model.entidades;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,7 @@ public class Via {
     private Estat estat;
     private Escalador creadaPer;
     private String restriccions;
-    private String grauGlobal; // Afegit perquè ho demanaven les filles
+    private String grauGlobal; // Afegit perquè ho demanaven les "filles"
 
     // 3. ATRIBUTS ESPORTIVA
     private int llargadaTotal;

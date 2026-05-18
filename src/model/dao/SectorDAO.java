@@ -1,13 +1,12 @@
 package model.dao;
-
 import model.entidades.Sector;
 import java.util.List;
 
 public interface SectorDAO {
-    boolean create(Sector sector);
-    Sector getById(int id);
-    List<Sector> getAll();
-    boolean update(Sector sector);
-    boolean delete(int id);
-    List<model.entidades.Sector> getSectorsWithMoreThanXAvailableVies(int x);
+    boolean crear(Sector sector);
+    Sector obtenirPerId(int id);
+    List<Sector> obtenirTots();
+    boolean actualitzar(Sector sector);
+    boolean eliminar(int id);
+    List<model.entidades.Sector> obtenirSectorsAmbMesDeXViesDisponibles(int x);
 }

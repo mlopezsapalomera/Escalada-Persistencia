@@ -1,5 +1,4 @@
 package model.entidades;
-
 import java.util.List; // Importar List
 
 public class Escalador {

@@ -1,7 +1,7 @@
 package view;
-
 import model.entidades.*;
-import model.util.GradeUtils;
+import java.util.Arrays;
+import java.util.List;
 import java.util.List;
 import java.util.Scanner;
 
@@ -30,15 +30,17 @@ public class ViaView {
         // 1. Triar Escalador (Creador)
         System.out.println("Qui ha creat la via?");
         for (Escalador e : escaladors) System.out.println("["+e.getId()+"] " + e.getNom());
-        int idEsc = readInt(sc, "Introdueix l'ID de l'escalador creador: ");
+        int idEsc = llegirEnter(sc, "Introdueix l'ID de l'escalador creador: ");
         Escalador esc = new Escalador(); esc.setId(idEsc);
         v.setCreadaPer(esc);
 
         // 2. Triar Sector
         System.out.println("A quin sector pertany?");
         for (Sector s : sectors) System.out.println("["+s.getId()+"] " + s.getNom());
-        int idSec = readInt(sc, "Introdueix l'ID del sector: ");
-        Sector sec = new Sector(); sec.setId(idSec);
+        int idSec = llegirEnter(sc, "Introdueix l'ID del sector: ");
+        Sector sec = null;
+        for (Sector s : sectors) { if (s.getId() == idSec) { sec = s; break; } }
+        if (sec == null) { sec = new Sector(); sec.setId(idSec); }
         v.setSector(sec);
 
         // 3. Dades bàsiques
@@ -49,7 +51,7 @@ public class ViaView {
         String grau;
         while (true) {
             grau = sc.nextLine().trim();
-            if (GradeUtils.isValid(grau)) break;
+            if (grauValid(grau)) break;
             System.out.print("Grau no vàlid. Torna-ho a intentar (ex: 6a, 7b+): ");
         }
         v.setGrauGlobal(grau);
@@ -65,13 +67,13 @@ public class ViaView {
             }
         }
 
-        int tipus = readInt(sc, "Tipus de via (1-Esportiva, 2-Clàssica, 3-Gel): ");
+        int tipus = llegirEnter(sc, "Tipus de via (1-Esportiva, 2-Clàssica, 3-Gel): ");
         if(tipus == 1) v.setEstil(Via.Estil.ESPORTIVA);
         else if(tipus == 2) v.setEstil(Via.Estil.CLASSICA);
         else v.setEstil(Via.Estil.GEL);
 
         // 4. Estat i Data (Requeriment PDF)
-        int est = readInt(sc, "Estat (1-Apte, 2-Construcció, 3-Tancada): ");
+        int est = llegirEnter(sc, "Estat (1-Apte, 2-Construcció, 3-Tancada): ");
         if (est == 1) v.setEstat(Via.Estat.APTE);
         else {
             if (est == 2) v.setEstat(Via.Estat.CONSTRUCCIO);
@@ -100,9 +102,9 @@ public class ViaView {
 
         // 5. ENTRADA DE DADES EXTRA SEGONS L'ESTIL
         if (v.getEstil() == Via.Estil.ESPORTIVA) {
-            int llarg = readInt(sc, "Llargada total (5-30 metres): ");
+            int llarg = llegirEnter(sc, "Llargada total (5-30 metres): ");
             while (llarg < 5 || llarg > 30) {
-                llarg = readInt(sc, "Llargada ha de ser entre 5 i 30. Torna-ho a introduir: ");
+                llarg = llegirEnter(sc, "Llargada ha de ser entre 5 i 30. Torna-ho a introduir: ");
             }
             v.setLlargadaTotal(llarg);
             
@@ -116,7 +118,7 @@ public class ViaView {
                 System.out.print("Ancoratge no vàlid. Tria entre (spits, parabolts, químics): ");
             }
         } else if (v.getEstil() == Via.Estil.CLASSICA || v.getEstil() == Via.Estil.GEL) {
-            int numLlargs = readInt(sc, "Quants llargs (L) té aquesta via?: ");
+            int numLlargs = llegirEnter(sc, "Quants llargs (L) té aquesta via?: ");
             v.setLlistaLlargs(new java.util.ArrayList<>());
 
             for (int i = 1; i <= numLlargs; i++) {
@@ -124,7 +126,7 @@ public class ViaView {
                 Llarg llarg = new Llarg();
                 llarg.setNumeroLlarg(i);
                 
-                llarg.setMetres(readInt(sc, "   Metres del llarg L" + i + ": "));
+                llarg.setMetres(llegirEnter(sc, "   Metres del llarg L" + i + ": "));
                 
                 System.out.print("   Grau del llarg L" + i + ": ");
                 llarg.setGrau(sc.nextLine().trim());
@@ -136,6 +138,19 @@ public class ViaView {
         return v;
     }
 
+    // Lista de grados coincidente con la base de datos
+    private static final List<String> GRADE_ORDER = Arrays.asList(
+            "4","4+","5","5+","6a","6a+","6b","6b+","6c","6c+",
+            "7a","7a+","7b","7b+","7c","7c+","8a","8a+","8b","8b+",
+            "8c","8c+","9a","9a+","9b","9b+","9c","9c+"
+    );
+
+    private boolean grauValid(String grau) {
+        if (grau == null) return false;
+        String g = grau.trim().toLowerCase().replaceAll("\\s+", "");
+        return GRADE_ORDER.contains(g);
+    }
+
     public Via dadesModificarVia(Via v, Scanner sc, List<Escola> escoles, List<Sector> sectors, List<Escalador> escaladors) {
         System.out.println("\n--- MODIFICAR VIA (deixa buit per mantenir) ---");
         System.out.println("ID Via a modificar: " + v.getId());
@@ -145,7 +160,7 @@ public class ViaView {
 
         System.out.print("Grau global [" + v.getGrauGlobal() + "]: ");
         String grau = sc.nextLine().trim(); if (!grau.isEmpty()) {
-            if (GradeUtils.isValid(grau)) v.setGrauGlobal(grau); else System.out.println("Grau invàlid. S'ignora el canvi.");
+            if (grauValid(grau)) v.setGrauGlobal(grau); else System.out.println("Grau invàlid. S'ignora el canvi.");
         }
 
         System.out.print("Orientació [" + (v.getOrientacio() != null ? v.getOrientacio().name() : "-") + "]: ");
@@ -196,7 +211,7 @@ public class ViaView {
             System.out.print("Vols redefinir els llargs (L) d'aquesta via? (s/n): ");
             String resp = sc.nextLine().trim().toLowerCase();
             if (resp.equals("s") || resp.equals("si")) {
-                int numLlargs = readInt(sc, "Quants llargs (L) té ara aquesta via?: ");
+                int numLlargs = llegirEnter(sc, "Quants llargs (L) té ara aquesta via?: ");
                 v.setLlistaLlargs(new java.util.ArrayList<>());
 
                 for (int i = 1; i <= numLlargs; i++) {
@@ -204,7 +219,7 @@ public class ViaView {
                     Llarg llarg = new Llarg();
                     llarg.setNumeroLlarg(i);
                     
-                    llarg.setMetres(readInt(sc, "   Metres del llarg L" + i + ": "));
+                    llarg.setMetres(llegirEnter(sc, "   Metres del llarg L" + i + ": "));
                     
                     System.out.print("   Grau del llarg L" + i + ": ");
                     llarg.setGrau(sc.nextLine().trim());
@@ -217,7 +232,7 @@ public class ViaView {
         return v;
     }
 
-    public int readViaId(Scanner sc) {
+    public int llegirIdVia(Scanner sc) {
         while (true) {
             System.out.print("ID via: ");
             String l = sc.nextLine().trim();
@@ -231,7 +246,8 @@ public class ViaView {
         return r.equals("s") || r.equals("si");
     }
 
-    private int readInt(Scanner sc, String prompt) {
+    
+    private int llegirEnter(Scanner sc, String prompt) {
         while (true) {
             try {
                 System.out.print(prompt);

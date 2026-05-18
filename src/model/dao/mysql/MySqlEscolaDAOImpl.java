@@ -1,5 +1,4 @@
 package model.dao.mysql;
-
 import model.dao.EscolaDAO;
 import model.entidades.Escola;
 import model.persistencia.conexio_db;
@@ -11,7 +10,7 @@ import java.util.List;
 public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
-    public boolean create(Escola escola) {
+    public boolean crear(Escola escola) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
@@ -55,7 +54,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     }
 
     @Override
-    public Escola getById(int id) {
+    public Escola obtenirPerId(int id) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escoles WHERE id = ?";
@@ -84,7 +83,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     }
 
     @Override
-    public List<Escola> getAll() {
+    public List<Escola> obtenirTots() {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escoles";
@@ -113,7 +112,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     }
 
     @Override
-    public List<Escola> getEscolesAmbRestriccionsActives() {
+    public List<Escola> obtenirEscolesAmbRestriccionsActives() {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT DISTINCT e.* FROM escoles e JOIN sectors s ON s.id_escola = e.id WHERE s.restriccions IS NOT NULL AND s.restriccions <> '' UNION SELECT DISTINCT e.* FROM escoles e JOIN vies v ON v.id_escola = e.id WHERE v.restriccions IS NOT NULL AND v.restriccions <> ''";
@@ -136,7 +135,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     }
 
     @Override
-    public boolean update(Escola escola) {
+    public boolean actualitzar(Escola escola) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "UPDATE escoles SET nom = ?, lloc = ?, aproximacio = ?, popularitat = ? WHERE id = ?";
@@ -156,7 +155,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
     }
 
     @Override
-    public boolean delete(int id) {
+    public boolean eliminar(int id) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         // Check for dependent sectors

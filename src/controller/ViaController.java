@@ -1,24 +1,48 @@
 package controller;
-
 import model.entidades.*;
 import model.dao.DAOFactory;
 import model.dao.ViaDAO;
 import view.ViaView;
-
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
 public class ViaController {
     
     private final ViaView viaView = new ViaView();
-    private final ViaDAO viaDAO = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getViaDAO();
+    private final ViaDAO viaDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirViaDAO();
+    private final Scanner scanner;
+
+    public ViaController(Scanner scanner) {
+        this.scanner = scanner;
+    }
+
+    private static final List<String> GRADE_ORDER = Arrays.asList(
+            "4","4+","5","5+","6a","6a+","6b","6b+","6c","6c+",
+            "7a","7a+","7b","7b+","7c","7c+","8a","8a+","8b","8b+",
+            "8c","8c+","9a","9a+","9b","9b+","9c","9c+"
+    );
+
+    private int rankGrade(String grau) {
+        if (grau == null) return -1;
+        String g = grau.trim().toLowerCase().replaceAll("\\s+", "");
+        return GRADE_ORDER.indexOf(g);
+    }
+
+    private boolean grauValid(String grau) { return rankGrade(grau) != -1; }
+
+    private boolean menorOigualGrau(String g1, String g2) {
+        int r1 = rankGrade(g1);
+        int r2 = rankGrade(g2);
+        if (r1 == -1 || r2 == -1) return false;
+        return r1 <= r2;
+    }
 
     public void gestionarVies() {
-        Scanner sc = new Scanner(System.in);
         int opcio;
         do {
             viaView.mostrarMenu();
-            String line = sc.nextLine();
+            String line = scanner.nextLine();
             try {
                 opcio = Integer.parseInt(line.trim());
             } catch (NumberFormatException ex) {
@@ -26,7 +50,7 @@ public class ViaController {
             }
             switch (opcio) {
                 case 1:
-                    crearNovaVia(sc);
+                    crearNovaVia();
                     break;
                 case 2:
                     llistarTotesVies();
@@ -35,7 +59,7 @@ public class ViaController {
                     System.out.print("ID de l'escola: ");
                     int idEsc;
                     try {
-                        idEsc = Integer.parseInt(sc.nextLine().trim());
+                        idEsc = Integer.parseInt(scanner.nextLine().trim());
                     } catch (NumberFormatException ex) {
                         System.out.println("ID invàlid.");
                         break;
@@ -43,22 +67,22 @@ public class ViaController {
                     llistarViesDisponibles(idEsc);
                     break;
                 case 6:
-                    cercarPerDificultat(sc);
+                    cercarPerDificultat();
                     break;
                 case 7:
-                    cercarPerEstat(sc);
+                    cercarPerEstat();
                     break;
                 case 8:
-                    llistarViesRecentmentApte(sc);
+                    llistarViesRecentmentApte();
                     break;
                 case 9:
-                    llistarViesMesLlargues(sc);
+                    llistarViesMesLlargues();
                     break;
                 case 4:
-                    modificarVia(sc);
+                    modificarVia();
                     break;
                 case 5:
-                    eliminarVia(sc);
+                    eliminarVia();
                     break;
                 case 0:
                     System.out.println("Tornant...");
@@ -67,12 +91,12 @@ public class ViaController {
         } while (opcio != 0);
     }
 
-    private void crearNovaVia(Scanner sc) {
-        List<Escola> escoles = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscolaDAO().getAll();
-        List<Sector> sectors = new SectorController().llistarTotsSectors();
-        List<Escalador> escaladors = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscaladorDAO().getAll();
+    private void crearNovaVia() {
+        List<Escola> escoles = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscolaDAO().obtenirTots();
+        List<Sector> sectors = new SectorController(scanner).llistarTotsSectors();
+        List<Escalador> escaladors = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscaladorDAO().obtenirTots();
 
-        Via v = viaView.dadesNovaVia(sc, escoles, sectors, escaladors);
+        Via v = viaView.dadesNovaVia(scanner, escoles, sectors, escaladors);
         // Validaciones básicas antes de persistir
         if (v == null) {
             System.out.println("Entrada cancel·lada o invàlida.");
@@ -115,36 +139,36 @@ public class ViaController {
 
         if (!validarGrau(v.getGrauGlobal(), v.getEstil())) return;
 
-        if (viaDAO.create(v)) {
+        if (viaDAO.crear(v)) {
             System.out.println("Via guardada amb èxit!");
         } else {
             System.out.println("Error al guardar la via.");
         }
     }
 
-    private void modificarVia(Scanner sc) {
-        int id = viaView.readViaId(sc);
-        Via v = viaDAO.getById(id);
+    private void modificarVia() {
+        int id = viaView.llegirIdVia(scanner);
+        Via v = viaDAO.obtenirPerId(id);
         if (v == null) { System.out.println("Via no trobada."); return; }
-        List<Escola> escoles = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscolaDAO().getAll();
-        List<Sector> sectors = new SectorController().llistarTotsSectors();
-        List<Escalador> escaladors = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscaladorDAO().getAll();
-        Via updated = viaView.dadesModificarVia(v, sc, escoles, sectors, escaladors);
-        if (viaDAO.update(updated)) System.out.println("Via actualitzada."); else System.out.println("Error actualitzant via.");
+        List<Escola> escoles = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscolaDAO().obtenirTots();
+        List<Sector> sectors = new SectorController(scanner).llistarTotsSectors();
+        List<Escalador> escaladors = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscaladorDAO().obtenirTots();
+        Via updated = viaView.dadesModificarVia(v, scanner, escoles, sectors, escaladors);
+        if (viaDAO.actualitzar(updated)) System.out.println("Via actualitzada."); else System.out.println("Error actualitzant via.");
     }
 
-    private void eliminarVia(Scanner sc) {
-        int id = viaView.readViaId(sc);
-        Via v = viaDAO.getById(id);
+    private void eliminarVia() {
+        int id = viaView.llegirIdVia(scanner);
+        Via v = viaDAO.obtenirPerId(id);
         if (v == null) { System.out.println("Via no trobada."); return; }
-        boolean ok = viaView.confirmacio(sc, "Segur que vols eliminar la via '" + v.getNom() + "'?");
+        boolean ok = viaView.confirmacio(scanner, "Segur que vols eliminar la via '" + v.getNom() + "'?\"");
         if (!ok) { System.out.println("Eliminació cancel·lada."); return; }
-        if (viaDAO.delete(id)) System.out.println("Via eliminada."); else System.out.println("Error eliminant via.");
+        if (viaDAO.eliminar(id)) System.out.println("Via eliminada."); else System.out.println("Error eliminant via.");
     }
 
     private void llistarTotesVies() {
-        viaDAO.refreshEstados();
-        List<Via> vies = viaDAO.getAll();
+        viaDAO.actualitzarEstats();
+        List<Via> vies = viaDAO.obtenirTots();
         System.out.println("\n--- LLISTAT DE TOTES LES VIES ---");
         for (Via v : vies) {
             String estil = v.getEstil() != null ? v.getEstil().name() : "-";
@@ -154,8 +178,8 @@ public class ViaController {
     }
 
     private void llistarViesDisponibles(int idEscola) {
-        viaDAO.refreshEstados();
-        List<Via> vies = viaDAO.getDisponiblesPerEscola(idEscola);
+        viaDAO.actualitzarEstats();
+        List<Via> vies = viaDAO.obtenirViesDisponiblesPerEscola(idEscola);
         System.out.println("\n--- VIES DISPONIBLES (APTE) ---");
         for (Via v : vies) {
             System.out.println("- " + v.getNom() + " (" + v.getGrauGlobal() + ")");
@@ -163,13 +187,13 @@ public class ViaController {
     }
 
     private boolean validarGrau(String grau, Via.Estil estil) {
-        if (!model.util.GradeUtils.isValid(grau)) {
-            System.out.println("Format de grau no vàlid.");
+        if (!grauValid(grau)) {
+                System.out.println("Format de grau no vàlid.");
             return false;
         }
         if (estil == Via.Estil.GEL) {
             // comparar amb ordre definit
-            if (!model.util.GradeUtils.lessOrEqual(grau, "8b")) {
+                if (!menorOigualGrau(grau, "8b")) {
                 System.out.println("Màxim grau en gel és 8b.");
                 return false;
             }
@@ -177,45 +201,45 @@ public class ViaController {
         return true;
     }
 
-    private void cercarPerDificultat(Scanner sc) {
-        viaDAO.refreshEstados();
+    private void cercarPerDificultat() {
+        viaDAO.actualitzarEstats();
         System.out.print("Grau mínim (ex: 6a): ");
-        String min = sc.nextLine().trim();
+        String min = scanner.nextLine().trim();
         System.out.print("Grau màxim (ex: 7b): ");
-        String max = sc.nextLine().trim();
-        List<Via> res = viaDAO.buscarPorDificultat(min, max);
+        String max = scanner.nextLine().trim();
+        List<Via> res = viaDAO.cercarPerDificultat(min, max);
         System.out.println("\n--- Resultats cerca per dificultat ---");
         for (Via v : res) System.out.println("["+v.getId()+"] " + v.getNom() + " - " + v.getGrauGlobal());
     }
 
-    private void cercarPerEstat(Scanner sc) {
-        viaDAO.refreshEstados();
+    private void cercarPerEstat() {
+        viaDAO.actualitzarEstats();
         System.out.print("Estat (apte, construccio, tancada): ");
-        String estat = sc.nextLine().trim();
-        List<Via> res = viaDAO.buscarPorEstat(estat);
+        String estat = scanner.nextLine().trim();
+        List<Via> res = viaDAO.cercarPerEstat(estat);
         System.out.println("\n--- Resultats cerca per estat: " + estat + " ---");
         for (Via v : res) System.out.println("["+v.getId()+"] " + v.getNom() + " - " + v.getEstat());
     }
 
-    private void llistarViesRecentmentApte(Scanner sc) {
-        viaDAO.refreshEstados();
+    private void llistarViesRecentmentApte() {
+        viaDAO.actualitzarEstats();
         System.out.print("Nombre de dies enrere (ex: 7): ");
         try {
-            int dies = Integer.parseInt(sc.nextLine().trim());
-            List<Via> res = viaDAO.getViesQueHanPassatAPteRecentment(dies);
+            int dies = Integer.parseInt(scanner.nextLine().trim());
+            List<Via> res = viaDAO.obtenirViesQueHanPassatAPteRecentment(dies);
             System.out.println("\n--- Vies que han passat a Apte en els últims " + dies + " dies ---");
             for (Via v : res) System.out.println("["+v.getId()+"] " + v.getNom() + " - data: " + v.getDataFinalitzacioEstat());
         } catch (Exception ex) { System.out.println("Entrada invàlida."); }
     }
 
-    private void llistarViesMesLlargues(Scanner sc) {
-        viaDAO.refreshEstados();
+    private void llistarViesMesLlargues() {
+        viaDAO.actualitzarEstats();
         System.out.print("ID de l'escola: ");
         try {
-            int idEscola = Integer.parseInt(sc.nextLine().trim());
+            int idEscola = Integer.parseInt(scanner.nextLine().trim());
             System.out.print("Limita quantes vies mostrar (ex: 5): ");
-            int limit = Integer.parseInt(sc.nextLine().trim());
-            List<Via> res = viaDAO.getViesMesLlarguesPerEscola(idEscola, limit);
+            int limit = Integer.parseInt(scanner.nextLine().trim());
+            List<Via> res = viaDAO.obtenirViesMesLlarguesPerEscola(idEscola, limit);
             System.out.println("\n--- Vies més llargues de l'escola ID " + idEscola + " ---");
             for (Via v : res) System.out.println("["+v.getId()+"] " + v.getNom() + " - llarg: " + v.getLlargadaTotal());
         } catch (Exception ex) { System.out.println("Entrada invàlida."); }

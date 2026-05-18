@@ -1,41 +1,44 @@
 import controller.*;
 import view.MenuView;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        // Mode interactiu per defecte. No s'injecten inputs automàtics aquí.
+        Scanner sc = new Scanner(System.in);
+        // Modo interactivo por defecto. No se inyectan entradas automáticas aquí.
 
-        // Inicialització de vistes i controladors
-        MenuView menu = new MenuView();
-        EscolaController escolaCtrl = new EscolaController();
-        EscaladorController escaladorCtrl = new EscaladorController();
-        SectorController sectorCtrl = new SectorController();
-        ViaController viaCtrl = new ViaController();
-        HistorialController historialCtrl = new HistorialController();
+        // Inicialización de vistas y controladores
+        MenuView menuVista = new MenuView(sc);
+        EscolaController controladorEscola = new EscolaController(sc);
+        EscaladorController controladorEscalador = new EscaladorController(sc);
+        SectorController controladorSector = new SectorController(sc);
+        ViaController controladorVia = new ViaController(sc);
+        HistorialController controladorHistorial = new HistorialController(sc);
 
+        // Añadimos un hook para desconectar la base de datos al terminar la aplicación
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             model.persistencia.conexio_db.desconectar();
         }));
 
-        int opcio;
+        int opcioSeleccionada;
         do {
-            opcio = menu.mostrarMenuPrincipal();
+            opcioSeleccionada = menuVista.mostrarMenuPrincipal();
 
-            switch (opcio) {
+            switch (opcioSeleccionada) {
                 case 1:
-                    escolaCtrl.gestionarEscoles();
+                    controladorEscola.gestionarEscoles();
                     break;
                 case 2:
-                    sectorCtrl.gestionarSectors();
+                    controladorSector.gestionarSectors();
                     break;
                 case 3:
-                    viaCtrl.gestionarVies();
+                    controladorVia.gestionarVies();
                     break;
                 case 4:
-                    escaladorCtrl.gestionarEscaladors();
+                    controladorEscalador.gestionarEscaladors();
                     break;
                 case 5:
-                    historialCtrl.gestionarHistorial(new java.util.Scanner(System.in)); 
+                    controladorHistorial.gestionarHistorial();
                     break;
                 case 0:
                     System.out.println("Adéu!");
@@ -43,6 +46,6 @@ public class Main {
                 default:
                     System.out.println("Opció no vàlida.");
             }
-        } while (opcio != 0);
+        } while (opcioSeleccionada != 0);
     }
 }

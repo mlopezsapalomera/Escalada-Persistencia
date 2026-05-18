@@ -1,5 +1,4 @@
 package view;
-
 import model.entidades.Escalador;
 
 import java.util.List;

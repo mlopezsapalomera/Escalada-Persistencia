@@ -1,5 +1,4 @@
 package model.persistencia;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -19,7 +18,7 @@ public static void comprobarConexion() {
 
     private static void conectar() {
         try {
-            conn = ConnectionFactory.createConnection();
+            conn = ConnectionFactory.crearConnexio();
             System.out.println("LOG: Conexión establecida con " + config.DB_TYPE);
         } catch (Exception e) {
             System.err.println("ERROR: No se pudo conectar: " + e.getMessage());

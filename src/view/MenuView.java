@@ -1,9 +1,12 @@
 package view;
-
 import java.util.Scanner;
 
 public class MenuView {
-    private Scanner sc = new Scanner(System.in);
+    private final Scanner sc;
+
+    public MenuView(Scanner sc) {
+        this.sc = sc;
+    }
 
     public int mostrarMenuPrincipal() {
         System.out.println("\n***********************************");

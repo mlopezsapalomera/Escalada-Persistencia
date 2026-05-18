@@ -1,0 +1,79 @@
+# Test inputs for Escalada-Persistencia
+# Use these lines as manual input when running the app (press Enter after each line).
+
+# 1) Crear una Escola (desde menú principal)
+# Main menu -> 1 (Gestionar Escoles)
+# Escola menu -> 1 (Crear escola)
+1
+1
+Serra Alta
+Sant Feliu
+30 min caminando
+MITJANA
+0
+
+# 2) Crear un Sector (requiere una escola existente)
+# Main menu -> 2 (Gestionar Sectors)
+# Sector menu -> 1 (Crear sector)
+2
+1
+# When prompted for school ID, use the ID of the created escola (e.g., 1)
+1
+Sector Nord
+41.378
+2.170
+15 min
+mitjana
+
+gel
+0
+
+# 3) Crear un Escalador
+# Main menu -> 4 (Gestionar Escaladors)
+# Escalador menu -> 1 (Crear escalador)
+4
+1
+Pere Puig
+perep
+32
+6b
+Via del Sol
+ESPORTIVA
+0
+
+# 4) Crear una Via (básico)
+# Main menu -> 3 (Gestionar Vies)
+# Via menu -> 1 (Crear via)
+3
+1
+# When prompted, enter the IDs for escola and sector you created (e.g., 1)
+1
+1
+Cualsevol
+6a+
+N
+1
+1
+25
+spits
+0
+
+# 5) Añadir historial (ascensió)
+# Main menu -> 5 (Gestionar Historial)
+# Historial menu -> 1 (Afegir ascensió)
+5
+1
+# id escalador (e.g., 1)
+1
+# id via (e.g., 1)
+1
+# date (YYYY-MM-DD) or press Enter for today
+
+# Return to main and exit
+0
+0
+
+# NOTES:
+# - Ajusta los IDs según los valores reales de tu BD.
+# - Para salir de cada submenú, introduce 0 cuando el menú lo solicite.
+# - Si usas el driver MySQL por línea de comandos, asegúrate de incluir el JAR en el classpath.

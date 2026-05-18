@@ -1,5 +1,4 @@
 package model.dao.mysql;
-
 import model.dao.HistorialDAO;
 import model.persistencia.conexio_db;
 
@@ -16,7 +15,7 @@ import java.util.Map;
 public class MySqlHistorialDAOImpl implements HistorialDAO {
 
     @Override
-    public boolean addAscensio(int idEscalador, int idVia, Date data) {
+    public boolean afegirAscensio(int idEscalador, int idVia, Date data) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "INSERT INTO historial_escaladors (id_escalador, id_via, data_ascensio) VALUES (?, ?, ?)";
@@ -32,7 +31,7 @@ public class MySqlHistorialDAOImpl implements HistorialDAO {
     }
 
     @Override
-    public List<Map<String, Object>> getAscensosByEscalador(int idEscalador) {
+    public List<Map<String, Object>> obtenirAscensosPerEscalador(int idEscalador) {
         List<Map<String, Object>> res = new ArrayList<>();
         conexio_db.comprobarConexion();
         String sql = "SELECT h.*, v.nom as nom_via, v.grau_global, v.id_sector, v.id_escola FROM historial_escaladors h JOIN vies v ON v.id = h.id_via WHERE h.id_escalador = ? ORDER BY h.data_ascensio DESC";
@@ -55,7 +54,7 @@ public class MySqlHistorialDAOImpl implements HistorialDAO {
     }
 
     @Override
-    public List<Map<String, Object>> getAscensosByVia(int idVia) {
+    public List<Map<String, Object>> obtenirAscensosPerVia(int idVia) {
         List<Map<String, Object>> res = new ArrayList<>();
         conexio_db.comprobarConexion();
         String sql = "SELECT h.*, e.nom as nom_escalador FROM historial_escaladors h JOIN escaladors e ON e.id = h.id_escalador WHERE h.id_via = ? ORDER BY h.data_ascensio DESC";

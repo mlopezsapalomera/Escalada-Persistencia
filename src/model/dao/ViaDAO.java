@@ -1,19 +1,18 @@
 package model.dao;
-
 import model.entidades.Via;
 import java.util.List;
 
 public interface ViaDAO {
-    boolean create(Via via);
-    Via getById(int id);
-    List<Via> getAll();
-    boolean update(Via via);
-    boolean delete(int id);
-    List<Via> getDisponiblesPerEscola(int idEscola);
-    List<Via> buscarPorDificultat(String minGrau, String maxGrau);
-    List<Via> buscarPorEstat(String estat);
-    List<Via> getViesQueHanPassatAPteRecentment(int dies);
-    List<Via> getViesMesLlarguesPerEscola(int idEscola, int limit);
-    // Ensure estados are refreshed (e.g., vías whose data_finalitzacio_estat expired)
-    void refreshEstados();
+    boolean crear(Via via);
+    Via obtenirPerId(int id);
+    List<Via> obtenirTots();
+    boolean actualitzar(Via via);
+    boolean eliminar(int id);
+    List<Via> obtenirViesDisponiblesPerEscola(int idEscola);
+    List<Via> cercarPerDificultat(String minGrau, String maxGrau);
+    List<Via> cercarPerEstat(String estat);
+    List<Via> obtenirViesQueHanPassatAPteRecentment(int dies);
+    List<Via> obtenirViesMesLlarguesPerEscola(int idEscola, int limit);
+    // Asegura que los estados se actualizan (p. ej. vías cuya data_finalitzacio_estat ha caducado)
+    void actualitzarEstats();
 }

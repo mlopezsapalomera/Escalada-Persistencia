@@ -1,5 +1,4 @@
 package model.dao.mysql;
-
 import model.dao.SectorDAO;
 import model.entidades.Escola;
 import model.entidades.Sector;
@@ -12,7 +11,7 @@ import java.util.List;
 public class MySqlSectorDAOImpl implements SectorDAO {
 
     @Override
-    public boolean create(Sector s) {
+    public boolean crear(Sector s) {
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
@@ -51,7 +50,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
     }
 
     @Override
-    public List<Sector> getAll() {
+    public List<Sector> obtenirTots() {
         String sql = "SELECT * FROM sectors";
         List<Sector> llista = new ArrayList<>();
         conexio_db.comprobarConexion();
@@ -79,7 +78,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
     }
 
     @Override
-    public boolean delete(int id) {
+    public boolean eliminar(int id) {
         conexio_db.comprobarConexion();
         // Prevent deleting sector if there are vies
         String check = "SELECT COUNT(*) AS cnt FROM vies WHERE id_sector = ?";
@@ -108,7 +107,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
 
     // Implementació dels mètodes obligatoris per la interfície
     @Override
-    public Sector getById(int id) {
+    public Sector obtenirPerId(int id) {
         String sql = "SELECT * FROM sectors WHERE id = ?";
         conexio_db.comprobarConexion();
         try (PreparedStatement pstmt = conexio_db.getConn().prepareStatement(sql)) {
@@ -140,7 +139,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
     }
 
     @Override
-    public boolean update(Sector s) {
+    public boolean actualitzar(Sector s) {
         // Antes d'actualitzar, assegurar compatibilitat entre el nou tipus de sector i les vies existents
         try {
             if (s.getTipusSector() == Sector.TipusSector.GEL) {
@@ -192,7 +191,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
     }
 
     @Override
-    public List<Sector> getSectorsWithMoreThanXAvailableVies(int x) {
+    public List<Sector> obtenirSectorsAmbMesDeXViesDisponibles(int x) {
         List<Sector> res = new ArrayList<>();
         String sql = "SELECT s.* FROM sectors s JOIN vies v ON v.id_sector = s.id AND v.estat = 'apte' GROUP BY s.id HAVING COUNT(v.id) > ?";
         conexio_db.comprobarConexion();

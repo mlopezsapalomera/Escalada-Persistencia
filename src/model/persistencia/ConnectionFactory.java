@@ -1,5 +1,4 @@
 package model.persistencia;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -10,7 +9,7 @@ import java.sql.Driver;
 import java.lang.reflect.InvocationTargetException;
 
 public class ConnectionFactory {
-    public static Connection createConnection() throws SQLException, ClassNotFoundException {
+    public static Connection crearConnexio() throws SQLException, ClassNotFoundException {
         switch (config.DB_TYPE) {
             case "MYSQL":
                 try {
@@ -26,7 +25,7 @@ public class ConnectionFactory {
                         else if (envPath != null && !envPath.isEmpty()) jar = new File(envPath);
                         if (jar == null || !jar.exists()) {
                             // attempt to locate any mysql-connector JAR nearby (cwd, parents, user.home)
-                            File found = findConnectorJar();
+                            File found = trobarConnectorJar();
                             if (found != null) jar = found;
                         }
                         if (jar != null && jar.exists()) {
@@ -55,7 +54,7 @@ public class ConnectionFactory {
     }
 
     // Utility: try to locate a mysql connector jar in common locations
-    private static File findConnectorJar() {
+    private static File trobarConnectorJar() {
         // Check working dir and parents
         try {
             File cwd = new File(System.getProperty("user.dir"));

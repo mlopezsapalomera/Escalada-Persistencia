@@ -5,6 +5,11 @@
 
 package model.persistencia;
 
+/*
+ * Comentarios en castellano:
+ * Configuración de la conexión a la base de datos.
+ */
+
 public class config {
     // Cambiando esta variable, el pryecto sabra que driver y que URL usar
     public static final String DB_TYPE = "MYSQL";
@@ -14,7 +19,7 @@ public class config {
     public static final String PASS = ""; //Ninguna por que en xampp por defecto no es ninguna
     public static final String DRIVER = "com.mysql.cj.jdbc.Driver";
     // Opcional: ruta absoluta/local al JAR del driver MySQL si no está en el classpath
-    public static final String DRIVER_JAR = ""; // ejemplo: C:/drivers/mysql-connector-java-9.7.0.jar
+    public static final String DRIVER_JAR = "C:\\Users\\mxrco\\Documents\\Escalada-Persistencia\\connectorMysql\\mysql-connector-j-9.7.0.jar"; // ejemplo: C:/drivers/mysql-connector-java-9.7.0.jar
 
     // Ejemplo para implementacion (Postgres)
 

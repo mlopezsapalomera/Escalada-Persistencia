@@ -1,5 +1,4 @@
 package view;
-
 import model.entidades.Escola;
 import model.entidades.Sector;
 import java.math.BigDecimal;

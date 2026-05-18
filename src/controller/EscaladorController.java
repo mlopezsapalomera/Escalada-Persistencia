@@ -1,5 +1,4 @@
 package controller;
-
 import model.dao.DAOFactory;
 import model.dao.EscaladorDAO;
 import model.entidades.Escalador;
@@ -11,15 +10,15 @@ import java.util.Scanner;
 public class EscaladorController {
     private final EscaladorDAO escaladorDAO;
     private final EscaladorView escaladorView;
+    private final Scanner scanner;
 
-    public EscaladorController() {
-        // Aquesta línia ara hauria de funcionar correctament amb els imports correctes
-        this.escaladorDAO = DAOFactory.getDAOFactory(DAOFactory.MYSQL).getEscaladorDAO();
+    public EscaladorController(Scanner scanner) {
+        this.scanner = scanner;
+        this.escaladorDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscaladorDAO();
         this.escaladorView = new EscaladorView();
     }
 
     public void gestionarEscaladors() {
-        Scanner scanner = new Scanner(System.in);
         int opcio;
 
         do {
@@ -33,13 +32,13 @@ public class EscaladorController {
 
             switch (opcio) {
                 case 1:
-                    crearEscalador(scanner);
+                    crearEscalador();
                     break;
                 case 2:
-                    modificarEscalador(scanner);
+                    modificarEscalador();
                     break;
                 case 3:
-                    llistarUnEscalador(scanner);
+                    llistarUnEscalador();
                     break;
                 case 4:
                     llistarTotsEscaladors();
@@ -48,7 +47,7 @@ public class EscaladorController {
                     mostrarAgrupatsPerNivell();
                     break;
                 case 5:
-                    eliminarEscalador(scanner);
+                    eliminarEscalador();
                     break;
                 case 0:
                     System.out.println("Tornant al menú principal...");
@@ -59,23 +58,22 @@ public class EscaladorController {
         } while (opcio != 0);
     }
 
-    private void crearEscalador(Scanner scanner) {
+    private void crearEscalador() {
         Escalador escalador = escaladorView.dadesCrearEscalador(scanner);
-        if (escaladorDAO.create(escalador)) {
+        if (escaladorDAO.crear(escalador)) {
             System.out.println("Escalador creat correctament.");
         } else {
             System.out.println("Error en crear l'escalador.");
         }
     }
 
-    private void modificarEscalador(Scanner scanner) {
+    private void modificarEscalador() {
         System.out.print("Introdueix l'ID de l'escalador a modificar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-        Escalador escalador = escaladorDAO.getById(id);
+        int id = Integer.parseInt(scanner.nextLine().trim());
+        Escalador escalador = escaladorDAO.obtenirPerId(id);
         if (escalador != null) {
             Escalador escaladorModificat = escaladorView.dadesModificarEscalador(scanner, escalador);
-            if (escaladorDAO.update(escaladorModificat)) {
+            if (escaladorDAO.actualitzar(escaladorModificat)) {
                 System.out.println("Escalador modificat correctament.");
             } else {
                 System.out.println("Error en modificar l'escalador.");
@@ -85,11 +83,10 @@ public class EscaladorController {
         }
     }
 
-    private void llistarUnEscalador(Scanner scanner) {
+    private void llistarUnEscalador() {
         System.out.print("Introdueix l'ID de l'escalador a llistar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-        Escalador escalador = escaladorDAO.getById(id);
+        int id = Integer.parseInt(scanner.nextLine().trim());
+        Escalador escalador = escaladorDAO.obtenirPerId(id);
         if (escalador != null) {
             escaladorView.mostrarDetalls(escalador);
         } else {
@@ -98,15 +95,14 @@ public class EscaladorController {
     }
 
     private void llistarTotsEscaladors() {
-        List<Escalador> escaladors = escaladorDAO.getAll();
+        List<Escalador> escaladors = escaladorDAO.obtenirTots();
         escaladorView.mostrarLlista(escaladors);
     }
 
-    private void eliminarEscalador(Scanner scanner) {
+    private void eliminarEscalador() {
         System.out.print("Introdueix l'ID de l'escalador a eliminar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-        if (escaladorDAO.delete(id)) {
+        int id = Integer.parseInt(scanner.nextLine().trim());
+        if (escaladorDAO.eliminar(id)) {
             System.out.println("Escalador eliminat correctament.");
         } else {
             System.out.println("Error en eliminar l'escalador.");
@@ -114,7 +110,7 @@ public class EscaladorController {
     }
 
     private void mostrarAgrupatsPerNivell() {
-        java.util.Map<String, java.util.List<Escalador>> map = escaladorDAO.getEscaladorsGroupedByNivell();
+        java.util.Map<String, java.util.List<Escalador>> map = escaladorDAO.obtenirEscaladorsAgrupatsPerNivell();
         if (map.isEmpty()) { System.out.println("No hi ha escaladors."); return; }
         System.out.println("\n--- Escaladors agrupats per nivell ---");
         for (String nivell : map.keySet()) {

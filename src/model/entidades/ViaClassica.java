@@ -1,5 +1,4 @@
 package model.entidades;
-
 import java.util.List;
 
 public class ViaClassica extends Via {
