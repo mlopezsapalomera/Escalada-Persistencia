@@ -4,8 +4,14 @@ import model.entidades.Escalador;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Vista de consola para la gestión de escaladores.
+ */
 public class EscaladorView {
 
+    /**
+     * Muestra el menú de operaciones de escaladores.
+     */
     public void mostrarMenu() {
         System.out.println("\n--- Gestió d'Escaladors ---");
         System.out.println("1. Crear escalador");
@@ -18,6 +24,10 @@ public class EscaladorView {
         System.out.print("Selecciona una opció: ");
     }
 
+    /**
+     * Muestra una lista resumida de escaladores.
+     * @param escaladors lista de escaladores.
+     */
     public void mostrarLlista(List<Escalador> escaladors) {
         if (escaladors.isEmpty()) {
             System.out.println("No hi ha escaladors per mostrar.");
@@ -30,6 +40,10 @@ public class EscaladorView {
         }
     }
 
+    /**
+     * Muestra el detalle de un escalador.
+     * @param escalador escalador a visualizar.
+     */
     public void mostrarDetalls(Escalador escalador) {
         System.out.println("\n--- Detalls de l'Escalador ---");
         System.out.println("ID: " + escalador.getId());
@@ -41,14 +55,17 @@ public class EscaladorView {
         System.out.println("Estil Preferit: " + escalador.getEstilPreferit());
     }
 
+    /**
+     * Solicita por consola los datos para crear un escalador.
+     * @param scanner lector de entrada.
+     * @return escalador con los datos introducidos.
+     */
     public Escalador dadesCrearEscalador(Scanner scanner) {
         System.out.print("Nom: ");
         String nom = scanner.nextLine();
         System.out.print("Àlies: ");
         String alias = scanner.nextLine();
-        System.out.print("Edat: ");
-        int edat = scanner.nextInt();
-        scanner.nextLine();
+        int edat = llegirEnter(scanner, "Edat: ");
         System.out.print("Nivell (ex: 7a, 8b+): ");
         String nivell = scanner.nextLine();
         System.out.print("Nom de la via del nivell màxim: ");
@@ -66,6 +83,12 @@ public class EscaladorView {
         return new Escalador(nom, alias, edat, nivell, nomVia, estil);
     }
 
+    /**
+     * Solicita por consola los cambios de un escalador existente.
+     * @param scanner lector de entrada.
+     * @param escalador escalador original.
+     * @return escalador con cambios aplicados.
+     */
     public Escalador dadesModificarEscalador(Scanner scanner, Escalador escalador) {
         System.out.print("Nou nom [" + escalador.getNom() + "]: ");
         String nom = scanner.nextLine();
@@ -92,5 +115,23 @@ public class EscaladorView {
         if (!estilStr.isEmpty()) escalador.setEstilPreferit(Escalador.Estil.valueOf(estilStr.toUpperCase()));
 
         return escalador;
+    }
+
+    /**
+     * Lee un entero con validación de formato.
+     * @param sc lector de entrada.
+     * @param prompt mensaje a mostrar.
+     * @return número entero válido.
+     */
+    private int llegirEnter(Scanner sc, String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                String line = sc.nextLine().trim();
+                return Integer.parseInt(line);
+            } catch (NumberFormatException ex) {
+                System.out.print("Entrada no vàlida. Torna-ho a intentar. ");
+            }
+        }
     }
 }

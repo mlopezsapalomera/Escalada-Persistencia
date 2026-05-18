@@ -7,14 +7,16 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Implementación MySQL del DAO de escuelas.
 public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
     public boolean crear(Escola escola) {
+        // Verifica conexión y evita duplicados por nombre (case-insensitive).
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
-        // Unicitat: no permetre dues escoles amb el mateix nom
+        // Unicidad: no permitir dos escuelas con el mismo nombre.
         String checkSql = "SELECT COUNT(*) AS cnt FROM escoles WHERE LOWER(nom) = LOWER(?)";
         try (PreparedStatement pc = conn.prepareStatement(checkSql)) {
             pc.setString(1, escola.getNom());
@@ -55,6 +57,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
     public Escola obtenirPerId(int id) {
+        // Obtiene una escuela por ID y mapea sus campos a entidad.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escoles WHERE id = ?";
@@ -70,6 +73,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
                     escola.setLloc(rs.getString("lloc"));
                     escola.setAproximacio(rs.getString("aproximacio"));
                     escola.setNumVies(rs.getInt("num_vies"));
+                    // Fallback defensivo por si la columna llega nula.
                     String pop = rs.getString("popularitat");
                     if (pop != null) pop = pop.toUpperCase();
                     else pop = "MITJANA";
@@ -84,6 +88,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
     public List<Escola> obtenirTots() {
+        // Lista completa de escuelas.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escoles";
@@ -113,6 +118,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
     public List<Escola> obtenirEscolesAmbRestriccionsActives() {
+        // Devuelve escuelas con restricciones activas en sectores o vías.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT DISTINCT e.* FROM escoles e JOIN sectors s ON s.id_escola = e.id WHERE s.restriccions IS NOT NULL AND s.restriccions <> '' UNION SELECT DISTINCT e.* FROM escoles e JOIN vies v ON v.id_escola = e.id WHERE v.restriccions IS NOT NULL AND v.restriccions <> ''";
@@ -136,6 +142,7 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
     public boolean actualitzar(Escola escola) {
+        // Actualiza los campos editables de la escuela por ID.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "UPDATE escoles SET nom = ?, lloc = ?, aproximacio = ?, popularitat = ? WHERE id = ?";
@@ -156,9 +163,9 @@ public class MySqlEscolaDAOImpl implements EscolaDAO {
 
     @Override
     public boolean eliminar(int id) {
+        // Impide borrar la escuela si todavía tiene sectores asociados.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
-        // Check for dependent sectors
         String check = "SELECT COUNT(*) AS cnt FROM sectors WHERE id_escola = ?";
         try (PreparedStatement pc = conn.prepareStatement(check)) {
             pc.setInt(1, id);

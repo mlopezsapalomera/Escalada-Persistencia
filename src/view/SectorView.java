@@ -5,8 +5,14 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Vista de consola para la gestión de sectores.
+ */
 public class SectorView {
 
+    /**
+     * Muestra el menú de operaciones de sectores.
+     */
     public void mostrarMenu() {
         System.out.println("\n--- Gestió de Sectors ---");
         System.out.println("1. Crear sector");
@@ -16,6 +22,12 @@ public class SectorView {
         System.out.print("Selecciona una opció: ");
     }
 
+    /**
+     * Solicita por consola los datos para crear un sector.
+     * @param scanner lector de entrada.
+     * @param escoles lista de escuelas disponibles para asociar.
+     * @return sector construido con los datos introducidos.
+     */
     public Sector dadesCrearSector(Scanner scanner, List<Escola> escoles) {
         System.out.println("\n--- CREAR NOU SECTOR ---");
 
@@ -24,9 +36,7 @@ public class SectorView {
         for (Escola e : escoles) {
             System.out.println("[" + e.getId() + "] " + e.getNom());
         }
-        System.out.print("Introdueix l'ID de l'escola a la qual pertany: ");
-        int idEscola = scanner.nextInt();
-        scanner.nextLine(); // Netejar el buffer
+        int idEscola = llegirEnter(scanner, "Introdueix l'ID de l'escola a la qual pertany: ");
 
         // Creem un objecte Escola només amb l'ID per poder-lo relacionar
         Escola escolaEscollida = new Escola();
@@ -57,6 +67,10 @@ public class SectorView {
         return new Sector(escolaEscollida, nom, lat, lon, aprox, 0, pop, restriccions, tipus);
     }
 
+    /**
+     * Muestra una lista resumida de sectores.
+     * @param sectors lista de sectores.
+     */
     public void mostrarLlista(List<Sector> sectors) {
         if (sectors.isEmpty()) {
             System.out.println("No hi ha sectors creats.");
@@ -65,6 +79,24 @@ public class SectorView {
             for (Sector s : sectors) {
                 System.out.printf("ID: %d | Nom: %-15s | ID Escola: %d | Tipus: %s%n",
                         s.getId(), s.getNom(), s.getEscola().getId(), s.getTipusSector());
+            }
+        }
+    }
+
+    /**
+     * Lee un entero con validación de formato.
+     * @param sc lector de entrada.
+     * @param prompt mensaje a mostrar.
+     * @return entero válido.
+     */
+    private int llegirEnter(Scanner sc, String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                String line = sc.nextLine().trim();
+                return Integer.parseInt(line);
+            } catch (NumberFormatException ex) {
+                System.out.print("Entrada no vàlida. Torna-ho a intentar. ");
             }
         }
     }

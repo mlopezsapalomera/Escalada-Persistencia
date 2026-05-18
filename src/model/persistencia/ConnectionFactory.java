@@ -8,32 +8,39 @@ import java.net.URLClassLoader;
 import java.sql.Driver;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * Fábrica de conexiones JDBC.
+ * Implementa carga estándar del driver y un fallback dinámico desde JAR.
+ */
 public class ConnectionFactory {
+    /**
+     * Crea una conexión según el motor configurado en {@link config}.
+     * @return conexión JDBC abierta.
+     * @throws SQLException si falla la conexión.
+     * @throws ClassNotFoundException si no se puede cargar el driver.
+     */
     public static Connection crearConnexio() throws SQLException, ClassNotFoundException {
         switch (config.DB_TYPE) {
             case "MYSQL":
                 try {
                     Class.forName(config.DRIVER);
                 } catch (ClassNotFoundException e) {
-                    // Try to load the connector JAR from project's lib folder as a fallback
+                    // Fallback: intentar cargar el conector desde un JAR externo.
                     try {
-                        // Prefer explicit path from config, then environment variable
                         String cfgPath = model.persistencia.config.DRIVER_JAR;
                         String envPath = System.getenv("MYSQL_CONNECTOR_JAR");
                         File jar = null;
                         if (cfgPath != null && !cfgPath.isEmpty()) jar = new File(cfgPath);
                         else if (envPath != null && !envPath.isEmpty()) jar = new File(envPath);
                         if (jar == null || !jar.exists()) {
-                            // attempt to locate any mysql-connector JAR nearby (cwd, parents, user.home)
+                            // Intentar localizar un JAR mysql-connector en rutas comunes.
                             File found = trobarConnectorJar();
                             if (found != null) jar = found;
                         }
                         if (jar != null && jar.exists()) {
                             URL url = jar.toURI().toURL();
                             URLClassLoader ucl = new URLClassLoader(new URL[]{url}, Thread.currentThread().getContextClassLoader());
-                            // Load driver class from the URLClassLoader
                             Class<?> drvCls = Class.forName(config.DRIVER, true, ucl);
-                            // Instantiate and register it with DriverManager via a shim
                             try {
                                 Driver drvInstance = (Driver) drvCls.getDeclaredConstructor().newInstance();
                                 DriverManager.registerDriver(new DriverShim(drvInstance));
@@ -53,16 +60,17 @@ public class ConnectionFactory {
         }
     }
 
-    // Utility: try to locate a mysql connector jar in common locations
+    /**
+     * Intenta localizar un JAR de mysql connector en ubicaciones comunes.
+     * @return archivo encontrado o null si no hay coincidencias.
+     */
     private static File trobarConnectorJar() {
-        // Check working dir and parents
         try {
             File cwd = new File(System.getProperty("user.dir"));
             File cur = cwd;
             while (cur != null) {
                 File[] matches = cur.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
                 if (matches != null && matches.length > 0) return matches[0];
-                // also check a 'lib' subfolder
                 File lib = new File(cur, "lib");
                 if (lib.exists()) {
                     File[] m2 = lib.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
@@ -70,7 +78,6 @@ public class ConnectionFactory {
                 }
                 cur = cur.getParentFile();
             }
-            // Check user.home
             File home = new File(System.getProperty("user.home"));
             if (home.exists()) {
                 File[] hmatches = home.listFiles((dir, name) -> name.toLowerCase().startsWith("mysql-connector") && name.toLowerCase().endsWith(".jar"));
@@ -81,10 +88,16 @@ public class ConnectionFactory {
     }
 }
 
-// Shim to register drivers loaded from a custom classloader
+/**
+ * Adaptador para registrar en {@link DriverManager} drivers cargados con un classloader externo.
+ */
 class DriverShim implements Driver {
     private final Driver delegate;
 
+    /**
+     * Crea un adaptador para el driver indicado.
+     * @param d driver delegado real.
+     */
     DriverShim(Driver d) {
         this.delegate = d;
     }

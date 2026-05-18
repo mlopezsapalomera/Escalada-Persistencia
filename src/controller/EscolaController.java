@@ -7,17 +7,28 @@ import view.EscolaView;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Controlador de la gestión de escuelas.
+ * Coordina operaciones entre la vista y el DAO de escuelas.
+ */
 public class EscolaController {
     private final EscolaDAO escolaDAO;
     private final EscolaView escolaView;
     private final Scanner scanner;
 
+    /**
+     * Construye el controlador con un scanner compartido.
+     * @param scanner lector de entrada por consola.
+     */
     public EscolaController(Scanner scanner) {
         this.scanner = scanner;
         this.escolaDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscolaDAO();
         this.escolaView = new EscolaView();
     }
 
+    /**
+     * Ejecuta el bucle principal del menú de escuelas.
+     */
     public void gestionarEscoles() {
         int opcio;
 
@@ -68,6 +79,9 @@ public class EscolaController {
         } while (opcio != 0);
     }
 
+    /**
+     * Crea una nueva escuela a partir de los datos de la vista.
+     */
     private void crearEscola() {
         Escola escola = null;
         try {
@@ -84,6 +98,9 @@ public class EscolaController {
         
     }
 
+    /**
+     * Modifica una escuela existente a partir de su id.
+     */
     private void modificarEscola() {
         System.out.print("Introdueix l'ID de l'escola a modificar: ");
         int id;
@@ -110,6 +127,9 @@ public class EscolaController {
         }
     }
 
+    /**
+     * Muestra el detalle de una escuela por id.
+     */
     private void llistarUnaEscola() {
         System.out.print("Introdueix l'ID de l'escola a llistar: ");
         int id;
@@ -132,11 +152,17 @@ public class EscolaController {
             return;
     }
 
+    /**
+     * Lista todas las escuelas disponibles.
+     */
     private void llistarTotesEscoles() {
         List<Escola> escoles = escolaDAO.obtenirTots();
         escolaView.mostrarLlista(escoles);
     }
 
+    /**
+     * Elimina una escuela por id.
+     */
     private void eliminarEscola() {
         System.out.print("Introdueix l'ID de l'escola a eliminar: ");
         int id;
@@ -158,6 +184,9 @@ public class EscolaController {
         
     }
 
+    /**
+     * Lista escuelas con restricciones activas.
+     */
     private void llistarEscolesAmbRestriccions() {
         java.util.List<Escola> res = escolaDAO.obtenirEscolesAmbRestriccionsActives();
         if (res.isEmpty()) System.out.println("No hi ha escoles amb restriccions actives.");

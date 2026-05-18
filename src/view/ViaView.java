@@ -4,8 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Vista de consola para la gestión de vías.
+ */
 public class ViaView {
 
+    /**
+     * Muestra el menú de operaciones de vías.
+     */
     public void mostrarMenu() {
         System.out.println("\n--- Gestió de Vies ---");
         System.out.println("1. Crear nova Via");
@@ -21,6 +27,14 @@ public class ViaView {
         System.out.print("Selecciona: ");
     }
 
+    /**
+     * Solicita por consola los datos para crear una nueva vía.
+     * @param sc lector de entrada.
+     * @param escoles lista de escuelas disponibles.
+     * @param sectors lista de sectores disponibles.
+     * @param escaladors lista de escaladores disponibles.
+     * @return vía construida con los datos introducidos.
+     */
     public Via dadesNovaVia(Scanner sc, List<Escola> escoles, List<Sector> sectors, List<Escalador> escaladors) {
         Via v = new Via();
 
@@ -153,12 +167,26 @@ public class ViaView {
             "8c","8c+","9a","9a+","9b","9b+","9c","9c+"
     );
 
+    /**
+     * Comprueba si un grado está dentro del catálogo permitido.
+     * @param grau grado a validar.
+     * @return true si el grado es válido.
+     */
     private boolean grauValid(String grau) {
         if (grau == null) return false;
         String g = grau.trim().toLowerCase().replaceAll("\\s+", "");
         return GRADE_ORDER.contains(g);
     }
 
+    /**
+     * Solicita por consola los cambios para una vía existente.
+     * @param v vía a modificar.
+     * @param sc lector de entrada.
+     * @param escoles lista de escuelas.
+     * @param sectors lista de sectores.
+     * @param escaladors lista de escaladores.
+     * @return vía con cambios aplicados.
+     */
     public Via dadesModificarVia(Via v, Scanner sc, List<Escola> escoles, List<Sector> sectors, List<Escalador> escaladors) {
         System.out.println("\n--- MODIFICAR VIA (deixa buit per mantenir) ---");
         System.out.println("ID Via a modificar: " + v.getId());
@@ -248,6 +276,11 @@ public class ViaView {
         return v;
     }
 
+    /**
+     * Lee el id de una vía con validación de formato.
+     * @param sc lector de entrada.
+     * @return id de vía válido.
+     */
     public int llegirIdVia(Scanner sc) {
         while (true) {
             System.out.print("ID via: ");
@@ -256,6 +289,12 @@ public class ViaView {
         }
     }
 
+    /**
+     * Solicita una confirmación tipo sí/no.
+     * @param sc lector de entrada.
+     * @param missatge mensaje de confirmación.
+     * @return true si el usuario confirma.
+     */
     public boolean confirmacio(Scanner sc, String missatge) {
         System.out.print(missatge + " (s/n): ");
         String r = sc.nextLine().trim().toLowerCase();
@@ -263,6 +302,12 @@ public class ViaView {
     }
 
     
+    /**
+     * Lee un entero con validación.
+     * @param sc lector de entrada.
+     * @param prompt mensaje a mostrar.
+     * @return entero válido.
+     */
     private int llegirEnter(Scanner sc, String prompt) {
         while (true) {
             try {
@@ -275,6 +320,14 @@ public class ViaView {
         }
     }
 
+    /**
+     * Lee un entero dentro de un rango válido.
+     * @param sc lector de entrada.
+     * @param prompt mensaje a mostrar.
+     * @param min mínimo permitido.
+     * @param max máximo permitido.
+     * @return entero válido dentro del rango.
+     */
     private int llegirEnterRange(Scanner sc, String prompt, int min, int max) {
         while (true) {
             int v = llegirEnter(sc, prompt);

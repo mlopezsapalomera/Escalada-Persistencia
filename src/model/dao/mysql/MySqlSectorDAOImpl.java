@@ -8,14 +8,16 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Implementación MySQL del DAO de sectores.
 public class MySqlSectorDAOImpl implements SectorDAO {
 
     @Override
     public boolean crear(Sector s) {
+        // Valida conexión y unicidad de nombre por escuela antes de insertar.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
-        // Unicitat: dins d'una escola no pot haver-hi dos sectors amb el mateix nom
+        // Unicidad: dentro de una escuela no puede repetirse el nombre del sector.
         String checkSql = "SELECT COUNT(*) AS cnt FROM sectors WHERE id_escola = ? AND LOWER(nom) = LOWER(?)";
         try (PreparedStatement pc = conn.prepareStatement(checkSql)) {
             pc.setInt(1, s.getEscola().getId());
@@ -51,6 +53,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
 
     @Override
     public List<Sector> obtenirTots() {
+        // Devuelve todos los sectores con su escuela referenciada por ID.
         String sql = "SELECT * FROM sectors";
         List<Sector> llista = new ArrayList<>();
         conexio_db.comprobarConexion();
@@ -79,8 +82,8 @@ public class MySqlSectorDAOImpl implements SectorDAO {
 
     @Override
     public boolean eliminar(int id) {
+        // Bloquea el borrado si el sector tiene vías asociadas.
         conexio_db.comprobarConexion();
-        // Prevent deleting sector if there are vies
         String check = "SELECT COUNT(*) AS cnt FROM vies WHERE id_sector = ?";
         try (PreparedStatement pc = conexio_db.getConn().prepareStatement(check)) {
             pc.setInt(1, id);
@@ -105,7 +108,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
         }
     }
 
-    // Implementació dels mètodes obligatoris per la interfície
+    // Obtiene un sector por ID con sus datos completos.
     @Override
     public Sector obtenirPerId(int id) {
         String sql = "SELECT * FROM sectors WHERE id = ?";
@@ -140,7 +143,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
 
     @Override
     public boolean actualitzar(Sector s) {
-        // Antes d'actualitzar, assegurar compatibilitat entre el nou tipus de sector i les vies existents
+        // Antes de actualizar, valida compatibilidad entre tipo de sector y vías existentes.
         try {
             if (s.getTipusSector() == Sector.TipusSector.GEL) {
                 String q = "SELECT COUNT(*) AS cnt FROM vies WHERE id_sector = ? AND tipus_via != 'gel'";
@@ -192,6 +195,7 @@ public class MySqlSectorDAOImpl implements SectorDAO {
 
     @Override
     public List<Sector> obtenirSectorsAmbMesDeXViesDisponibles(int x) {
+        // Consulta sectores con más de X vías en estado apto.
         List<Sector> res = new ArrayList<>();
         String sql = "SELECT s.* FROM sectors s JOIN vies v ON v.id_sector = s.id AND v.estat = 'apte' GROUP BY s.id HAVING COUNT(v.id) > ?";
         conexio_db.comprobarConexion();

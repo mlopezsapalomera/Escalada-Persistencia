@@ -2,12 +2,17 @@ import controller.*;
 import view.MenuView;
 import java.util.Scanner;
 
+/**
+ * Punto de entrada de la aplicación de gestión de escalada.
+ */
 public class Main {
+    /**
+     * Inicializa vistas y controladores y ejecuta el bucle principal del menú.
+     * @param args argumentos de línea de comandos (no utilizados).
+     */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        // Modo interactivo por defecto. No se inyectan entradas automáticas aquí.
 
-        // Inicialización de vistas y controladores
         MenuView menuVista = new MenuView(sc);
         EscolaController controladorEscola = new EscolaController(sc);
         EscaladorController controladorEscalador = new EscaladorController(sc);
@@ -15,7 +20,6 @@ public class Main {
         ViaController controladorVia = new ViaController(sc);
         HistorialController controladorHistorial = new HistorialController(sc);
 
-        // Añadimos un hook para desconectar la base de datos al terminar la aplicación
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             model.persistencia.conexio_db.desconectar();
         }));

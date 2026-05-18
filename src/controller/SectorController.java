@@ -8,16 +8,26 @@ import view.SectorView;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Controlador de gestión de sectores.
+ */
 public class SectorController {
 
     private final SectorDAO sectorDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirSectorDAO();
     private final SectorView sectorView = new SectorView();
     private final Scanner scanner;
 
+    /**
+     * Construye el controlador con scanner compartido.
+     * @param scanner lector de entrada por consola.
+     */
     public SectorController(Scanner scanner) {
         this.scanner = scanner;
     }
 
+    /**
+     * Ejecuta el bucle del menú de sectores.
+     */
     public void gestionarSectors() {
         int opcio;
         do {
@@ -52,11 +62,17 @@ public class SectorController {
         } while (opcio != 0);
     }
     
-    // Mètode públic per si altres controladors necessiten la llista de sectors
+    /**
+     * Devuelve todos los sectores para reutilizarlos desde otros controladores.
+     * @return lista completa de sectores.
+     */
     public List<Sector> llistarTotsSectors() {
         return sectorDAO.obtenirTots();
     }
 
+    /**
+     * Muestra sectores con más de X vías disponibles.
+     */
     private void mostrarSectorsAmbMesX() {
         System.out.print("Mostra sectors amb més de quantes vies disponibles? X = ");
         try {

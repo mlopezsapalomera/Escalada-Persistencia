@@ -7,10 +7,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Implementación MySQL del DAO de escaladores.
 public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
     public boolean crear(Escalador escalador) {
+        // Asegura conexión activa antes de operar.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "INSERT INTO escaladors (nom, alias, edat, nivell, nom_via_nivell_maxim, estil_preferit) VALUES (?, ?, ?, ?, ?, ?)";
@@ -26,6 +28,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
             int affectedRows = ps.executeUpdate();
 
             if (affectedRows > 0) {
+                // Recupera el ID autogenerado y lo asigna a la entidad en memoria.
                 try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         escalador.setId(generatedKeys.getInt(1));
@@ -41,6 +44,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
     public Escalador obtenirPerId(int id) {
+        // Busca un único escalador por ID primario.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escaladors WHERE id = ?";
@@ -57,6 +61,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
                     escalador.setEdat(rs.getInt("edat"));
                     escalador.setNivell(rs.getString("nivell"));
                     escalador.setNomViaNivellMaxim(rs.getString("nom_via_nivell_maxim"));
+                    // Normaliza a mayúsculas para mapear con el enum Java.
                     String estilStr = rs.getString("estil_preferit");
                     if (estilStr != null) estilStr = estilStr.toUpperCase();
                     escalador.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
@@ -70,6 +75,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
     public List<Escalador> obtenirTots() {
+        // Lista completa de escaladores.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "SELECT * FROM escaladors";
@@ -86,9 +92,9 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
                 escalador.setEdat(rs.getInt("edat"));
                 escalador.setNivell(rs.getString("nivell"));
                 escalador.setNomViaNivellMaxim(rs.getString("nom_via_nivell_maxim"));
-                    String estilStr = rs.getString("estil_preferit");
-                    if (estilStr != null) estilStr = estilStr.toUpperCase();
-                    escalador.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
+                String estilStr = rs.getString("estil_preferit");
+                if (estilStr != null) estilStr = estilStr.toUpperCase();
+                escalador.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
                 escaladors.add(escalador);
             }
         } catch (SQLException e) {
@@ -99,6 +105,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
     public java.util.Map<String, java.util.List<Escalador>> obtenirEscaladorsAgrupatsPerNivell() {
+        // Agrupa escaladores por el nivel máximo alcanzado.
         java.util.Map<String, java.util.List<Escalador>> map = new java.util.HashMap<>();
         conexio_db.comprobarConexion();
         String sql = "SELECT * FROM escaladors ORDER BY nivell";
@@ -113,7 +120,9 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
                 String nivell = rs.getString("nivell");
                 e.setNivell(nivell);
                 e.setNomViaNivellMaxim(rs.getString("nom_via_nivell_maxim"));
-                String estilStr = rs.getString("estil_preferit"); if (estilStr != null) estilStr = estilStr.toUpperCase(); e.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
+                String estilStr = rs.getString("estil_preferit");
+                if (estilStr != null) estilStr = estilStr.toUpperCase();
+                e.setEstilPreferit(Escalador.Estil.valueOf(estilStr));
                 map.computeIfAbsent(nivell, k -> new java.util.ArrayList<>()).add(e);
             }
         } catch (SQLException ex) { System.err.println("Error agrupant escaladors: " + ex.getMessage()); }
@@ -122,6 +131,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
     public boolean actualitzar(Escalador escalador) {
+        // Actualiza todos los campos editables de un escalador.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "UPDATE escaladors SET nom = ?, alias = ?, edat = ?, nivell = ?, nom_via_nivell_maxim = ?, estil_preferit = ? WHERE id = ?";
@@ -144,6 +154,7 @@ public class MySqlEscaladorDAOImpl implements EscaladorDAO {
 
     @Override
     public boolean eliminar(int id) {
+        // Elimina por ID. Devuelve true si se borró al menos una fila.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
         String sql = "DELETE FROM escaladors WHERE id = ?";

@@ -8,16 +8,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Controlador de operaciones de historial de ascensiones.
+ */
 public class HistorialController {
 
     private final HistorialDAO historialDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirHistorialDAO();
     private final HistorialView view = new HistorialView();
     private final Scanner scanner;
 
+    /**
+     * Construye el controlador con un scanner compartido.
+     * @param scanner lector de entrada por consola.
+     */
     public HistorialController(Scanner scanner) {
         this.scanner = scanner;
     }
 
+    /**
+     * Gestiona una operación de historial según opción introducida.
+     */
     public void gestionarHistorial() {
         System.out.println("--- Gestió Historial ---");
         System.out.println("1. Afegir ascensió");

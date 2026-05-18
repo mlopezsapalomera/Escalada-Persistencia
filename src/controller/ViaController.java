@@ -7,12 +7,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Controlador principal para la gestión de vías.
+ * Aplica validaciones de dominio antes de delegar en el DAO.
+ */
 public class ViaController {
     
     private final ViaView viaView = new ViaView();
     private final ViaDAO viaDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirViaDAO();
     private final Scanner scanner;
 
+    /**
+     * Construye el controlador con scanner compartido.
+     * @param scanner lector de entrada por consola.
+     */
     public ViaController(Scanner scanner) {
         this.scanner = scanner;
     }
@@ -23,14 +31,30 @@ public class ViaController {
             "8c","8c+","9a","9a+","9b","9b+","9c","9c+"
     );
 
+    /**
+     * Obtiene la posición de un grado dentro del orden de dificultad.
+     * @param grau grado a evaluar.
+     * @return índice del grado o -1 si no existe.
+     */
     private int rankGrade(String grau) {
         if (grau == null) return -1;
         String g = grau.trim().toLowerCase().replaceAll("\\s+", "");
         return GRADE_ORDER.indexOf(g);
     }
 
+    /**
+     * Valida si un grado existe en el catálogo permitido.
+     * @param grau grado a validar.
+     * @return true si es válido.
+     */
     private boolean grauValid(String grau) { return rankGrade(grau) != -1; }
 
+    /**
+     * Compara dos grados y comprueba si el primero es menor o igual al segundo.
+     * @param g1 grado izquierdo.
+     * @param g2 grado derecho.
+     * @return true si g1 <= g2 según el orden definido.
+     */
     private boolean menorOigualGrau(String g1, String g2) {
         int r1 = rankGrade(g1);
         int r2 = rankGrade(g2);
@@ -38,6 +62,9 @@ public class ViaController {
         return r1 <= r2;
     }
 
+    /**
+     * Ejecuta el bucle del menú de vías.
+     */
     public void gestionarVies() {
         int opcio;
         do {
@@ -91,6 +118,9 @@ public class ViaController {
         } while (opcio != 0);
     }
 
+    /**
+     * Crea una nueva vía aplicando validaciones previas de consistencia.
+     */
     private void crearNovaVia() {
         List<Escola> escoles = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscolaDAO().obtenirTots();
         List<Sector> sectors = new SectorController(scanner).llistarTotsSectors();
@@ -146,6 +176,9 @@ public class ViaController {
         }
     }
 
+    /**
+     * Modifica una vía existente.
+     */
     private void modificarVia() {
         int id = viaView.llegirIdVia(scanner);
         Via v = viaDAO.obtenirPerId(id);
@@ -157,6 +190,9 @@ public class ViaController {
         if (viaDAO.actualitzar(updated)) System.out.println("Via actualitzada."); else System.out.println("Error actualitzant via.");
     }
 
+    /**
+     * Elimina una vía tras confirmación del usuario.
+     */
     private void eliminarVia() {
         int id = viaView.llegirIdVia(scanner);
         Via v = viaDAO.obtenirPerId(id);
@@ -166,6 +202,9 @@ public class ViaController {
         if (viaDAO.eliminar(id)) System.out.println("Via eliminada."); else System.out.println("Error eliminant via.");
     }
 
+    /**
+     * Lista todas las vías con estado actualizado.
+     */
     private void llistarTotesVies() {
         viaDAO.actualitzarEstats();
         List<Via> vies = viaDAO.obtenirTots();
@@ -177,6 +216,10 @@ public class ViaController {
         }
     }
 
+    /**
+     * Lista vías disponibles para una escuela concreta.
+     * @param idEscola id de la escuela.
+     */
     private void llistarViesDisponibles(int idEscola) {
         viaDAO.actualitzarEstats();
         List<Via> vies = viaDAO.obtenirViesDisponiblesPerEscola(idEscola);
@@ -186,6 +229,12 @@ public class ViaController {
         }
     }
 
+    /**
+     * Valida el grado global de una vía según su estilo.
+     * @param grau grado global.
+     * @param estil estilo de la vía.
+     * @return true si cumple las reglas de validación.
+     */
     private boolean validarGrau(String grau, Via.Estil estil) {
         if (!grauValid(grau)) {
                 System.out.println("Format de grau no vàlid.");
@@ -201,6 +250,9 @@ public class ViaController {
         return true;
     }
 
+    /**
+     * Ejecuta la búsqueda de vías por rango de dificultad.
+     */
     private void cercarPerDificultat() {
         viaDAO.actualitzarEstats();
         System.out.print("Grau mínim (ex: 6a): ");
@@ -212,6 +264,9 @@ public class ViaController {
         for (Via v : res) System.out.println("["+v.getId()+"] " + v.getNom() + " - " + v.getGrauGlobal());
     }
 
+    /**
+     * Ejecuta la búsqueda de vías por estado.
+     */
     private void cercarPerEstat() {
         viaDAO.actualitzarEstats();
         System.out.print("Estat (apte, construccio, tancada): ");
@@ -221,6 +276,9 @@ public class ViaController {
         for (Via v : res) System.out.println("["+v.getId()+"] " + v.getNom() + " - " + v.getEstat());
     }
 
+    /**
+     * Lista vías que han pasado recientemente al estado apto.
+     */
     private void llistarViesRecentmentApte() {
         viaDAO.actualitzarEstats();
         System.out.print("Nombre de dies enrere (ex: 7): ");
@@ -232,6 +290,9 @@ public class ViaController {
         } catch (Exception ex) { System.out.println("Entrada invàlida."); }
     }
 
+    /**
+     * Lista las vías más largas de una escuela.
+     */
     private void llistarViesMesLlargues() {
         viaDAO.actualitzarEstats();
         System.out.print("ID de l'escola: ");

@@ -4,37 +4,42 @@ import java.util.List;
 
 public interface EscaladorDAO {
     /**
-     * Crea un nou escalador a la base de dades.
-     * @param escalador L'objecte Escalador a desar.
-     * @return true si s'ha creat correctament, false si no.
+     * Crea un nuevo escalador en la base de datos.
+     * @param escalador objeto con los datos del escalador.
+     * @return true si se crea correctamente; false en caso contrario.
      */
     boolean crear(Escalador escalador);
 
     /**
-     * Llegeix un escalador de la base de dades a partir del seu ID.
-     * @param id L'ID de l'escalador a cercar.
-     * @return L'objecte Escalador si es troba, null si no.
+     * Obtiene un escalador por su identificador.
+     * @param id id del escalador.
+     * @return escalador encontrado o null si no existe.
      */
     Escalador obtenirPerId(int id);
 
     /**
-     * Retorna tots els escaladors de la base de dades.
-     * @return Una llista de tots els escaladors.
+     * Recupera todos los escaladores registrados.
+     * @return lista completa de escaladores.
      */
     List<Escalador> obtenirTots();
 
     /**
-     * Actualitza les dades d'un escalador a la base de dades.
-     * @param escalador L'objecte Escalador amb les dades actualitzades.
-     * @return true si s'ha actualitzat correctament, false si no.
+     * Actualiza los datos de un escalador existente.
+     * @param escalador objeto con los datos actualizados.
+     * @return true si la actualización se realiza; false si falla.
      */
     boolean actualitzar(Escalador escalador);
 
     /**
-     * Elimina un escalador de la base de dades.
-     * @param id L'ID de l'escalador a eliminar.
-     * @return true si s'ha eliminat correctament, false si no.
+     * Elimina un escalador por su id.
+     * @param id id del escalador a eliminar.
+     * @return true si se elimina correctamente; false en caso contrario.
      */
     boolean eliminar(int id);
+
+    /**
+     * Agrupa escaladores por nivel de experiencia.
+     * @return mapa nivel -> lista de escaladores de ese nivel.
+     */
     java.util.Map<String, java.util.List<model.entidades.Escalador>> obtenirEscaladorsAgrupatsPerNivell();
 }

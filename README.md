@@ -1,75 +1,177 @@
-# Projecte: Escalada-Persistencia
+# Escalada-Persistencia
 
-Aplicació de consola desenvolupada en Java per a la gestió integral de zones d'escalada, sectors, vies i historials d'ascensions d'escaladors. El projecte implementa una arquitectura multicapa amb persistència en una base de dades relacional MySQL mitjançant JDBC, utilitzant els patrons DAO (Data Access Object) i Abstract Factory.
+Aplicación de consola en Java para gestionar escuelas, sectores, vías, escaladores e historial de ascensiones con persistencia MySQL (JDBC), arquitectura MVC + DAO + Abstract Factory.
 
----
-
-## 1. Arquitectura del Sistema
-
-L'aplicació s'ha estructurada seguiment el patró MVC (Model-Vista-Controlador) i DAO per garantir el desacoblament complet entre la interfície d'usuari i l'accés a les dades:
-
-1. **view (Presentació):** Classes que gestionen de forma exclusiva la interacció per consola (Scanner), mostren els menús i validen les dades d'entrada netejant els buffers per evitar pèrdues de text.
-2. **controller (Lògica de Control):** Intermediaris que reben les peticions de les vistes, gestionen el flux del programa i criden les operacions de persistència.
-3. **model.entidades (Domini):** Objectes de negoci que mapegen les entitats de l'enunciat (Escola, Sector, Via, Llarg, Escalador i Historial).
-4. **model.dao (Persistència):** Interfícies i implementacions SQL (MySqlViaDAOImpl, etc.) utilitzant una factoria abstracta per obtenir les connexions de forma transparent.
+La idea de este README es que, si llegas por primera vez, entiendas rápido **qué hemos construido**, **cómo está organizado** y **dónde tocar** cada cosa.
 
 ---
 
-## 2. Interfície i Menú Principal de l'Aplicació
+## Qué hemos construido
 
-El programa s'executa en mode interactiu a través d'un menú principal per consola que dóna accés a tots els mòduls requerits:
-
-* **1. Gestionar Escoles:** CRUD de zones generals d'escalada.
-* **2. Gestionar Sectors:** CRUD dels sectors vinculats a cada escola.
-* **3. Gestionar Vies:** CRUD de rutes (Esportiva, Clàssica, Gel) i configuració de llargs.
-* **4. Gestionar Escaladors:** CRUD dels perfils i configuració del nivell màxim.
-* **5. Gestionar Historial:** Mòdul per registrar ascensions, èxits i actualització en calent de les dades.
-* **0. Sortir:** Tancament segur de l'aplicació i de les connexions JDBC.
+Hemos implementado un sistema completo de gestión con:
+- CRUD de `Escola`, `Sector`, `Via`, `Escalador`.
+- Registro y consulta de ascensiones (`Historial`).
+- Soporte de 3 tipos de vía: `ESPORTIVA`, `CLASSICA`, `GEL`.
+- Reglas de negocio del enunciado (grados, estados, restricciones temporales, etc.).
+- Consultas avanzadas sobre vías.
 
 ---
 
-## 3. Requeriments del Domini i Regles de Negoci
+## Arquitectura (cómo lo hemos organizado)
 
-El sistema valida i executa de forma automàtica les restriccions del món de l'escalada demanades:
+### 1) `view/` (consola)
+Aquí pedimos datos y mostramos resultados. No hay SQL.
 
-* **Tipus de Vies:**
-  - *Esportiva:* Controla que la llargada total estigui estrictament entre 5 i 30 metres i en llista els ancoratges vàlids (spits, parabolts, químics).
-  - *Clàssica i Gel:* Desglossa la via de forma dinàmica en diversos Llargs, on cada tram es registra independentment amb els seus metres i el seu grau a la taula Llarg.
-* **Control Temporal d'Estats:** Els estats de les vies (Apte, Construcció, Tancada) utilitzen el camp data_finalitzacio_estat des de Java per controlar automàticament quan venç una restricció de cara a les consultes.
-* **Càlcul Dinàmic de l'Historial:** Quan es registra una ascensió com a reeixida, l'aplicació comprova si el grau de la via superat és major que el nivell_maxim actual de l'escalador; si és així, actualitza la seva fitxa a la base de dades automàticament.
+Ejemplo:
+```java
+public int mostrarMenuPrincipal() { ... }
+```
 
----
+### 2) `controller/` (flujo + negocio)
+Aquí orquestamos la navegación del menú, validamos reglas y delegamos en DAO.
 
-## 4. Model de Dades i Persistència (SQL)
+Ejemplo:
+```java
+if (!validarGrau(v.getGrauGlobal(), v.getEstil())) return;
+```
 
-La base de dades local s'ha normalitzat per garantir la integritat referencial mitjançant claus foranes (FOREIGN KEY). L'esquema relacional se sustenta sobre les següents taules:
+### 3) `model/entidades/` (dominio)
+Aquí están las clases del dominio (`Via`, `Escola`, `Sector`, etc.).
 
-| Taula | Camps i Atributs Principals |
-|---|---|
-| escola | id, nom (Únic), lloc, popularitat |
-| sector | id, nom, id_escola |
-| via | id, nom, grau_global, orientacio, estil, estat, data_final_estat, llargada_total, ancoratges, id_sector |
-| llarg | id, numero_llarg, llargada, dificultat, id_via |
-| escalador | id, nom, alies, edat, nivell_maxim, id_via_maxim, estil_preferit |
-| historial | id, id_escalador, id_via, data_ascensio, exit |
+### 4) `model/dao/` + `model/dao/mysql/` (persistencia)
+- Interfaces DAO en `model/dao`.
+- Implementación SQL en `model/dao/mysql`.
 
-*Nota sobre el Classpath:* El mòdul ConnectionFactory compta amb una lògica de cerca automàtica (DriverShim) que localitza el connector .jar de MySQL a l'arrel o subcarpetes sense necessitat de configurar variables d'entorn manuals al sistema.
-
----
-
-## 5. Consultes Avançades Integrades
-
-A més dels fluxos de gestió estàndard, s'ha donat solució a les consultes específiques de l'enunciat:
-1. **Disponibilitat per Escola:** Llista les vies en estat Apte d'una zona concreta.
-2. **Cerca per Rang de Dificultat:** Filtra vies per graus (ex: entre 6a i 7b) mostrant dades del sector i escola.
-3. **Cerca per Estat:** Troba de manera immediata rutes tancades o en modificació.
-4. **Vies Aptes Recentment:** Mostra les reobertures segons el venciment de la data límit de la restricció.
-5. **Vies més llargues:** Realitza la sumatòria total de metres dels llargs en clàssica/gel per determinar quina és la ruta amb major recorregut d'una escola.
+Ejemplo:
+```java
+DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirViaDAO();
+```
 
 ---
 
-## 6. Diagrama Entitat-Relació
+## Flujo principal de ejecución
 
-A continuació es mostra el disseny relacional triat per a l'emmagatzematge de dades, reflectint com les taules auxiliars i les relacions d'obligatorietat eviten la redundància de dades:
+Desde `Main` hemos dejado:
+1. Un único `Scanner` compartido.
+2. Inicialización de todos los controladores.
+3. Bucle principal de menú.
+4. Cierre seguro de conexión al salir.
 
-![Diagrama base de dades](diagrama_bd.png)
+Snippet:
+```java
+Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+    model.persistencia.conexio_db.desconectar();
+}));
+```
+
+---
+
+## Reglas de negocio importantes que ya hemos cubierto
+
+## Vías y tipos
+- **Esportiva**: valida longitud (5–30) y anclajes.
+- **Clàssica/Gel**: gestiona lista de `Llarg` con metros y grado por tramo.
+
+## Estados con fecha
+- `APTE`, `CONSTRUCCIO`, `TANCADA`.
+- Si hay fecha de fin de estado (`data_finalitzacio_estat`), actualizamos estados antes de consultas.
+
+## Compatibilidad sector ↔ estilo
+- En sectores `GEL` solo permitimos vías `GEL`.
+- En sectores `MIXTE_ROCA` bloqueamos vías `GEL`.
+
+## Dificultad y validación de grados
+- Orden de grados centralizado para comparar rangos.
+- Validación de formato para evitar grados inválidos.
+
+## Contadores de vías (`num_vies`)
+- En altas/bajas/cambios de sector ajustamos contadores de escuela y sector desde DAO.
+
+---
+
+## Consultas avanzadas implementadas
+
+En `MySqlViaDAOImpl` hemos añadido:
+1. Vías disponibles por escuela.
+2. Búsqueda por rango de dificultad.
+3. Búsqueda por estado.
+4. Vías que pasaron a aptas recientemente.
+5. Vías más largas por escuela.
+
+---
+
+## Persistencia y conexión MySQL
+
+### Configuración
+En `model/persistencia/config.java` hemos centralizado:
+- `DB_TYPE`
+- `URL`
+- `USER`
+- `PASS`
+- `DRIVER`
+- `DRIVER_JAR`
+
+### Conexión
+- `ConnectionFactory.java`: crea conexión y carga el driver.
+- Si el driver no está en classpath, intentamos fallback con búsqueda de JAR + `DriverShim`.
+- `conexio_db.java`: conexión compartida con apertura bajo demanda y cierre final.
+
+---
+
+## Estructura resumida
+
+```text
+src/
+  Main.java
+  controller/
+    EscolaController.java
+    SectorController.java
+    ViaController.java
+    EscaladorController.java
+    HistorialController.java
+  view/
+    MenuView.java
+    EscolaView.java
+    SectorView.java
+    ViaView.java
+    EscaladorView.java
+    HistorialView.java
+  model/
+    entidades/
+    dao/
+      mysql/
+    persistencia/
+```
+
+---
+
+## Cómo ejecutar
+
+Con compilado previo (`out`) y conector en classpath:
+
+```powershell
+Get-Content .\auto-test-inputs.txt | java -cp "out;connectorMysql\mysql-connector-j-9.7.0.jar" Main
+```
+
+Si quieres modo manual, ejecuta igual sin redirección y responde por consola.
+
+---
+
+## Qué documentos mirar según necesidad
+
+- Visión global técnica: [Estudiar.md](Estudiar.md)
+- Lógica de vías (clave): `src/controller/ViaController.java` + `src/model/dao/mysql/MySqlViaDAOImpl.java`
+- Entrada y validación de datos de vía: `src/view/ViaView.java`
+- Conexión y driver: `src/model/persistencia/ConnectionFactory.java`
+
+---
+
+## Estado actual del proyecto
+
+A nivel funcional, hemos dejado el proyecto en un punto sólido para entrega:
+- Arquitectura consistente.
+- Validaciones de entrada reforzadas.
+- Lógica de negocio principal implementada.
+- Documentación técnica ampliada (incluyendo `Estudiar.md`).
+
+Si más adelante queremos iterar, la siguiente mejora natural sería añadir tests automáticos de integración DAO + reglas de negocio.

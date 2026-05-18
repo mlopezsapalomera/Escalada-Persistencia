@@ -4,37 +4,42 @@ import java.util.List;
 
 public interface EscolaDAO {
     /**
-     * Crea una nova escola a la base de dades.
-     * @param escola L'objecte Escola a desar.
-     * @return true si s'ha creat correctament, false si no.
+     * Crea una nueva escuela en la base de datos.
+     * @param escola objeto con los datos de la escuela.
+     * @return true si se crea correctamente; false en caso contrario.
      */
     boolean crear(Escola escola);
 
     /**
-     * Llegeix una escola de la base de dades a partir del seu ID.
-     * @param id L'ID de l'escola a cercar.
-     * @return L'objecte Escola si es troba, null si no.
+     * Obtiene una escuela por su identificador.
+     * @param id id de la escuela.
+     * @return escuela encontrada o null si no existe.
      */
     Escola obtenirPerId(int id);
 
     /**
-     * Retorna totes les escoles de la base de dades.
-     * @return Una llista de totes les escoles.
+     * Recupera todas las escuelas registradas.
+     * @return lista completa de escuelas.
      */
     List<Escola> obtenirTots();
 
     /**
-     * Actualitza les dades d'una escola a la base de dades.
-     * @param escola L'objecte Escola amb les dades actualitzades.
-     * @return true si s'ha actualitzat correctament, false si no.
+     * Actualiza una escuela existente.
+     * @param escola objeto con los datos actualizados.
+     * @return true si la actualización se realiza; false si falla.
      */
     boolean actualitzar(Escola escola);
 
     /**
-     * Elimina una escola de la base de dades.
-     * @param id L'ID de l'escola a eliminar.
-     * @return true si s'ha eliminat correctament, false si no.
+     * Elimina una escuela por su id.
+     * @param id id de la escuela a eliminar.
+     * @return true si se elimina correctamente; false en caso contrario.
      */
     boolean eliminar(int id);
+
+    /**
+     * Obtiene las escuelas con restricciones activas en alguna de sus vías.
+     * @return lista de escuelas que cumplen el criterio.
+     */
     List<model.entidades.Escola> obtenirEscolesAmbRestriccionsActives();
 }

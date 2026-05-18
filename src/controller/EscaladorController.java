@@ -7,17 +7,28 @@ import view.EscaladorView;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Controlador de la gestión de escaladores.
+ * Orquesta interacción entre vista y capa DAO.
+ */
 public class EscaladorController {
     private final EscaladorDAO escaladorDAO;
     private final EscaladorView escaladorView;
     private final Scanner scanner;
 
+    /**
+     * Construye el controlador con un scanner compartido.
+     * @param scanner lector de entrada por consola.
+     */
     public EscaladorController(Scanner scanner) {
         this.scanner = scanner;
         this.escaladorDAO = DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirEscaladorDAO();
         this.escaladorView = new EscaladorView();
     }
 
+    /**
+     * Ejecuta el bucle principal del menú de escaladores.
+     */
     public void gestionarEscaladors() {
         int opcio;
 
@@ -58,6 +69,9 @@ public class EscaladorController {
         } while (opcio != 0);
     }
 
+    /**
+     * Crea un nuevo escalador con datos introducidos por consola.
+     */
     private void crearEscalador() {
         Escalador escalador = escaladorView.dadesCrearEscalador(scanner);
         if (escaladorDAO.crear(escalador)) {
@@ -67,6 +81,9 @@ public class EscaladorController {
         }
     }
 
+    /**
+     * Modifica un escalador existente a partir de su id.
+     */
     private void modificarEscalador() {
         System.out.print("Introdueix l'ID de l'escalador a modificar: ");
         int id = Integer.parseInt(scanner.nextLine().trim());
@@ -83,6 +100,9 @@ public class EscaladorController {
         }
     }
 
+    /**
+     * Muestra el detalle de un escalador por id.
+     */
     private void llistarUnEscalador() {
         System.out.print("Introdueix l'ID de l'escalador a llistar: ");
         int id = Integer.parseInt(scanner.nextLine().trim());
@@ -94,11 +114,17 @@ public class EscaladorController {
         }
     }
 
+    /**
+     * Lista todos los escaladores existentes.
+     */
     private void llistarTotsEscaladors() {
         List<Escalador> escaladors = escaladorDAO.obtenirTots();
         escaladorView.mostrarLlista(escaladors);
     }
 
+    /**
+     * Elimina un escalador por id.
+     */
     private void eliminarEscalador() {
         System.out.print("Introdueix l'ID de l'escalador a eliminar: ");
         int id = Integer.parseInt(scanner.nextLine().trim());
@@ -109,6 +135,9 @@ public class EscaladorController {
         }
     }
 
+    /**
+     * Muestra escaladores agrupados por nivel.
+     */
     private void mostrarAgrupatsPerNivell() {
         java.util.Map<String, java.util.List<Escalador>> map = escaladorDAO.obtenirEscaladorsAgrupatsPerNivell();
         if (map.isEmpty()) { System.out.println("No hi ha escaladors."); return; }

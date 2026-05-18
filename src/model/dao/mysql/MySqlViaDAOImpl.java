@@ -8,14 +8,16 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Implementación MySQL del DAO de vías.
 public class MySqlViaDAOImpl implements ViaDAO {
     @Override
     public boolean crear(Via v) {
+        // Inserta la vía y sus datos derivados (detall esportiva o llargs) en transacción.
         String sqlGeneral = "INSERT INTO vies (id_sector, id_escola, id_creador, nom, grau_global, orientacio, estat, data_finalitzacio_estat, tipus_roca, tipus_via, restriccions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
-        // Unicitat: dins d'una escola no pot haver-hi dues vies amb el mateix nom
+        // Unicidad: dentro de una escuela no puede repetirse el nombre de vía.
         String checkSql = "SELECT COUNT(*) AS cnt FROM vies WHERE id_escola = ? AND LOWER(nom) = LOWER(?)";
         try (PreparedStatement pc = conn.prepareStatement(checkSql)) {
             pc.setInt(1, v.getSector().getEscola().getId());
@@ -55,7 +57,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
                         } else if (v.getLlistaLlargs() != null && !v.getLlistaLlargs().isEmpty()) {
                             inserirLlargs(v, conn);
                         }
-                        // Actualitzar comptadors num_vies en escola i sector
+                        // Actualiza contadores de vías en escuela y sector.
                         String incEscola = "UPDATE escoles SET num_vies = num_vies + 1 WHERE id = ?";
                         String incSector = "UPDATE sectors SET num_vies = num_vies + 1 WHERE id = ?";
                         try (PreparedStatement pIncE = conn.prepareStatement(incEscola)) {
@@ -81,6 +83,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
     }
 
     private void inserirDetallEsportiva(Via v, Connection conn) throws SQLException {
+        // Guarda los datos específicos de una vía deportiva.
         String sql = "INSERT INTO detalls_esportiva (id_via, llargada, ancoratge) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, v.getId());
@@ -91,6 +94,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
     }
 
     private void inserirLlargs(Via v, Connection conn) throws SQLException {
+        // Inserta los llargs de vías clásicas/gel en batch para eficiencia.
         String sql = "INSERT INTO llargs (id_via, ordre_llarg, llargada, grau, ancoratge) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             int numLlarg = 1;
@@ -108,6 +112,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public Via obtenirPerId(int id) {
+        // Antes de leer, sincroniza cambios automáticos de estado por fecha.
         actualitzarEstats();
         String sql = "SELECT v.*, d.llargada AS det_llargada, d.ancoratge AS det_ancoratge FROM vies v LEFT JOIN detalls_esportiva d ON v.id = d.id_via WHERE v.id = ?";
         conexio_db.comprobarConexion();
@@ -151,7 +156,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public List<Via> obtenirTots() {
-        // asegurar que los estados están actualizados
+        // Sincroniza estados y lista todas las vías.
         actualitzarEstats();
         String sql = "SELECT * FROM vies";
         List<Via> llista = new ArrayList<>();
@@ -169,11 +174,12 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public boolean actualitzar(Via via) {
+        // Actualiza la vía, sus detalles específicos y contadores si cambia de ubicación.
         String sql = "UPDATE vies SET id_sector = ?, id_escola = ?, id_creador = ?, nom = ?, grau_global = ?, orientacio = ?, estat = ?, data_finalitzacio_estat = ?, tipus_roca = ?, tipus_via = ?, restriccions = ? WHERE id = ?";
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
-        // Llegir l'estat i ubicacio actual per decidir ajustos de data i num_vies
+        // Lee estado y ubicación actuales para ajustar fechas y contadores.
         String currentSql = "SELECT estat, data_finalitzacio_estat, id_sector, id_escola FROM vies WHERE id = ?";
         String currentEstat = null;
         java.sql.Date currentDate = null;
@@ -205,13 +211,13 @@ public class MySqlViaDAOImpl implements ViaDAO {
                 pstmt.setString(6, via.getOrientacio() != null ? via.getOrientacio().name() : null);
                 pstmt.setString(7, via.getEstat() != null ? via.getEstat().name().toLowerCase() : "apte");
 
-                // Si s'està passant a APTE i no s'ha proporcionat data, establir la data a avui
+                // Si pasa a APTE sin fecha, registra fecha de transición cuando corresponda.
                 java.sql.Date dateToSet = via.getDataFinalitzacioEstat();
                 boolean wasNotApte = currentEstat != null && !"apte".equalsIgnoreCase(currentEstat);
                 if (via.getEstat() == Via.Estat.APTE) {
                     if (dateToSet == null) {
                         if (wasNotApte) dateToSet = new java.sql.Date(System.currentTimeMillis());
-                        else dateToSet = currentDate; // conservar la data existent si ja era apte
+                        else dateToSet = currentDate; // conservar fecha si ya estaba en APTE
                     }
                 }
 
@@ -227,7 +233,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
                     return false;
                 }
 
-                // Ajustar num_vies si ha canviat d'escola o sector
+                // Ajusta contadores si cambia de escuela o sector.
                 int newSectorId = via.getSector().getId();
                 int newEscolaId = via.getSector().getEscola().getId();
                 String incEscola = "UPDATE escoles SET num_vies = num_vies + 1 WHERE id = ?";
@@ -244,7 +250,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
                     try (PreparedStatement i = conn.prepareStatement(incSector)) { i.setInt(1, newSectorId); i.executeUpdate(); }
                 }
 
-                // subtype handling: delete and reinsert llargs/detalls for simplicity
+                // Reescribe subtipo (detalles/llargs) para mantener consistencia.
                 if (via.getEstil() == Via.Estil.ESPORTIVA) {
                     String delL = "DELETE FROM llargs WHERE id_via = ?";
                     try (PreparedStatement d = conn.prepareStatement(delL)) {
@@ -297,6 +303,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public boolean eliminar(int id) {
+        // Elimina vía en transacción y decrementa contadores de escuela/sector.
         conexio_db.comprobarConexion();
         Connection conn = conexio_db.getConn();
 
@@ -354,7 +361,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
     @Override
     public List<Via> obtenirViesDisponiblesPerEscola(int idEscola) {
         List<Via> disponibles = new ArrayList<>();
-        // ensure estados are up-to-date
+        // Devuelve solo vías en estado APTE para una escuela.
         actualitzarEstats();
         String sql = "SELECT * FROM vies WHERE id_escola = ? AND estat = 'apte'";
         conexio_db.comprobarConexion();
@@ -372,13 +379,14 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public List<Via> cercarPerDificultat(String minGrau, String maxGrau) {
+        // Busca por rango de grado usando el orden definido en la base de datos.
         List<Via> res = new ArrayList<>();
         actualitzarEstats();
 
-        // Llista de graus tal com és a la BD (ordre determinat)
+        // Lista de grados según orden técnico acordado en BD.
         String gradeList = "'4','4+','5','5+','6a','6a+','6b','6b+','6c','6c+','7a','7a+','7b','7b+','7c','7c+','8a','8a+','8b','8b+','8c','8c+','9a','9a+','9b','9b+','9c','9c+'";
 
-        // Primer validar que els graus introduïts existeixen en l'ordre
+        // Valida que ambos grados existan en el catálogo.
         String checkSql = "SELECT FIELD(?, " + gradeList + ") AS p1, FIELD(?, " + gradeList + ") AS p2";
         conexio_db.comprobarConexion();
         try (PreparedStatement cp = conexio_db.getConn().prepareStatement(checkSql)) {
@@ -399,7 +407,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
             return res;
         }
 
-        // Filtrar amb FIELD(...) i LEAST/GREATEST per acceptar rang en qualsevol ordre
+        // Permite min/max en cualquier orden usando FIELD + LEAST/GREATEST.
         String sql = "SELECT * FROM vies WHERE FIELD(grau_global, " + gradeList + ") BETWEEN LEAST(FIELD(?, " + gradeList + "), FIELD(?, " + gradeList + ")) AND GREATEST(FIELD(?, " + gradeList + "), FIELD(?, " + gradeList + "))";
         try (PreparedStatement ps = conexio_db.getConn().prepareStatement(sql)) {
             ps.setString(1, minGrau);
@@ -416,7 +424,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
     @Override
     public List<Via> cercarPerEstat(String estat) {
         List<Via> res = new ArrayList<>();
-        // asegurar que los estados están actualizados
+        // Sincroniza estados y filtra por estado solicitado.
         actualitzarEstats();
         String sql = "SELECT * FROM vies WHERE estat = ?";
         conexio_db.comprobarConexion();
@@ -432,7 +440,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
     @Override
     public List<Via> obtenirViesQueHanPassatAPteRecentment(int dies) {
         List<Via> res = new ArrayList<>();
-        // asegurar que los estados están actualizados
+        // Lista vías que pasaron a APTE dentro del rango de días.
         actualitzarEstats();
         String sql = "SELECT * FROM vies WHERE estat = 'apte' AND data_finalitzacio_estat IS NOT NULL AND data_finalitzacio_estat >= DATE_SUB(CURDATE(), INTERVAL ? DAY)";
         conexio_db.comprobarConexion();
@@ -448,7 +456,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
     @Override
     public List<Via> obtenirViesMesLlarguesPerEscola(int idEscola, int limit) {
         List<Via> res = new ArrayList<>();
-        // asegurar que los estados están actualizados
+        // Obtiene las vías más largas de una escuela (deportiva o suma de llargs).
         actualitzarEstats();
         String sql = "SELECT v.* FROM vies v LEFT JOIN detalls_esportiva d ON v.id = d.id_via LEFT JOIN (SELECT id_via, SUM(llargada) AS total_llarg FROM llargs GROUP BY id_via) L ON v.id = L.id_via WHERE v.id_escola = ? ORDER BY COALESCE(d.llargada, L.total_llarg) DESC LIMIT ?";
         conexio_db.comprobarConexion();
@@ -462,11 +470,11 @@ public class MySqlViaDAOImpl implements ViaDAO {
         return res;
     }
 
-    // Helper to map common fields
+    // Mapea campos comunes de ResultSet a entidad Via.
     private Via convertirResultSetEnVia(ResultSet rs) throws SQLException {
         Via v = new Via();
         v.setId(rs.getInt("id"));
-        // set sector (only id)
+        // Relación mínima: sector y escuela por ID.
         model.entidades.Sector s = new model.entidades.Sector();
         s.setId(rs.getInt("id_sector"));
         model.entidades.Escola e = new model.entidades.Escola();
@@ -485,7 +493,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
         String tipus = rs.getString("tipus_via");
         if (tipus != null) v.setEstil(Via.Estil.valueOf(tipus.toUpperCase()));
 
-        // creador id only
+        // Relación mínima del creador por ID.
         model.entidades.Escalador cr = new model.entidades.Escalador();
         cr.setId(rs.getInt("id_creador"));
         v.setCreadaPer(cr);
@@ -497,7 +505,7 @@ public class MySqlViaDAOImpl implements ViaDAO {
 
     @Override
     public void actualitzarEstats() {
-        // No borrar la data_finalitzacio_estat: la mantenemos para consultas "han passat a apte recentment"
+        // No borra la fecha para mantener trazabilidad de "pasó a APTE recientemente".
         String sql = "UPDATE vies SET estat = 'apte' WHERE data_finalitzacio_estat IS NOT NULL AND data_finalitzacio_estat <= CURDATE()";
         conexio_db.comprobarConexion();
         try (PreparedStatement ps = conexio_db.getConn().prepareStatement(sql)) {

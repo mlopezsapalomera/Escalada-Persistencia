@@ -1,13 +1,24 @@
 package view;
 import java.util.Scanner;
 
+/**
+ * Vista principal del menú de la aplicación.
+ */
 public class MenuView {
     private final Scanner sc;
 
+    /**
+     * Construye la vista del menú principal con un scanner compartido.
+     * @param sc lector de entrada por consola.
+     */
     public MenuView(Scanner sc) {
         this.sc = sc;
     }
 
+    /**
+     * Muestra el menú principal y devuelve la opción seleccionada.
+     * @return número de opción o -1 si la entrada no es válida.
+     */
     public int mostrarMenuPrincipal() {
         System.out.println("\n***********************************");
         System.out.println("* MENU PILLAM LTD. CO - ESCALADA  *");
@@ -21,7 +32,6 @@ public class MenuView {
         System.out.println("***********************************");
         System.out.print("Selecciona una opció: ");
         
-        // Llegim l'opció de l'usuari amb validació per evitar InputMismatchException
         String line = sc.nextLine();
         try {
             return Integer.parseInt(line.trim());

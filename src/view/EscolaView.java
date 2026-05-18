@@ -3,8 +3,14 @@ import model.entidades.Escola;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Vista de consola para la gestión de escuelas.
+ */
 public class EscolaView {
 
+    /**
+     * Muestra el menú de operaciones de escuelas.
+     */
     public void mostrarMenu() {
         System.out.println("\n--- Gestió d'Escoles ---");
         System.out.println("1. Crear escola");
@@ -17,6 +23,10 @@ public class EscolaView {
         System.out.print("Selecciona una opció: ");
     }
 
+    /**
+     * Muestra una lista resumida de escuelas.
+     * @param escoles lista de escuelas a mostrar.
+     */
     public void mostrarLlista(List<Escola> escoles) {
         if (escoles.isEmpty()) {
             System.out.println("No hi ha escoles per mostrar.");
@@ -29,6 +39,10 @@ public class EscolaView {
         }
     }
 
+    /**
+     * Muestra el detalle de una escuela concreta.
+     * @param escola escuela a visualizar.
+     */
     public void mostrarDetalls(Escola escola) {
         System.out.println("\n--- Detalls de l'Escola ---");
         System.out.println("ID: " + escola.getId());
@@ -39,6 +53,11 @@ public class EscolaView {
         System.out.println("Popularitat: " + escola.getPopularitat());
     }
 
+    /**
+     * Solicita por consola los datos para crear una escuela.
+     * @param scanner lector de entrada.
+     * @return instancia de escuela con los datos introducidos, o null si no hay entrada.
+     */
     public Escola dadesCrearEscola(Scanner scanner) {
         String nom = "";
         while (nom.trim().isEmpty()) {
@@ -62,10 +81,15 @@ public class EscolaView {
             popularitat = Escola.Popularitat.MITJANA;
         }
 
-        // El número de vías se inicializa a 0 por defecto en la BBDD.
         return new Escola(nom, lloc, aproximacio, 0, popularitat);
     }
 
+    /**
+     * Solicita por consola los datos para modificar una escuela existente.
+     * @param scanner lector de entrada.
+     * @param escola escuela original a actualizar.
+     * @return escuela con los cambios aplicados.
+     */
     public Escola dadesModificarEscola(Scanner scanner, Escola escola) {
         System.out.print("Nou nom [" + escola.getNom() + "]: ");
         String nom = scanner.nextLine();
