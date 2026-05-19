@@ -60,10 +60,6 @@ public class ConnectionFactory {
         }
     }
 
-    /**
-     * Intenta localizar un JAR de mysql connector en ubicaciones comunes.
-     * @return archivo encontrado o null si no hay coincidencias.
-     */
     private static File trobarConnectorJar() {
         try {
             File cwd = new File(System.getProperty("user.dir"));

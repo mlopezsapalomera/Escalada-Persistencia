@@ -1,9 +1,6 @@
 package model.dao.mysql;
 import model.dao.*;
 
-/**
- * Implementación concreta de {@link DAOFactory} para MySQL.
- */
 public class MySqlDAOFactory extends DAOFactory {
 
     @Override
