@@ -1,63 +1,61 @@
 # Escalada-Persistencia
 
-Aplicación de consola en Java para gestionar escuelas, sectores, vías, escaladores e historial de ascensiones con persistencia MySQL (JDBC), arquitectura MVC + DAO + Abstract Factory.
+Aplicació de consola en Java per gestionar escoles, sectors, vies, escaladors i historial d'ascensions amb persistència MySQL (JDBC). El projecte implementa una arquitectura MVC + DAO + Abstract Factory.
 
-La idea de este README es que, si llegas por primera vez, entiendas rápido **qué hemos construido**, **cómo está organizado** y **dónde tocar** cada cosa.
-
----
-
-## Qué hemos construido
-
-Hemos implementado un sistema completo de gestión con:
-- CRUD de `Escola`, `Sector`, `Via`, `Escalador`.
-- Registro y consulta de ascensiones (`Historial`).
-- Soporte de 3 tipos de vía: `ESPORTIVA`, `CLASSICA`, `GEL`.
-- Reglas de negocio del enunciado (grados, estados, restricciones temporales, etc.).
-- Consultas avanzadas sobre vías.
+Aquest document descriu l'arquitectura del sistema, les funcionalitats implementades i els requeriments de negoci coberts.
 
 ---
 
-## Arquitectura (cómo lo hemos organizado)
+## Què hem construït
 
-### 1) `view/` (consola)
-Aquí pedimos datos y mostramos resultados. No hay SQL.
+S'ha implementat un sistema complet de gestió amb les funcionalitats següents:
+- CRUD complet per a les entitats: `Escola`, `Sector`, `Via` i `Escalador`.
+- Registre i consulta d'ascensions mitjançant el mòdul `Historial`.
+- Suport per a 3 tipus de via: `ESPORTIVA`, `CLASSICA`, `GEL`.
+- Validació de regles de negoci (graus, estats i restriccions temporals).
+- Consultes avançades sobre les vies.
 
-Ejemplo:
+---
+
+## Arquitectura i Organització
+
+### 1) `view/` - Capa de Presentació
+S'encarrega de la interacció amb l'usuari per consola. Demana dades, neteja buffers i mostra resultats. No conté cap sentència SQL.
 ```java
 public int mostrarMenuPrincipal() { ... }
 ```
 
-### 2) `controller/` (flujo + negocio)
-Aquí orquestamos la navegación del menú, validamos reglas y delegamos en DAO.
+### 2) `controller/` - Lògica de Control i Negoci
 
-Ejemplo:
+Orquestra la navegació, valida les regles de negoci abans de fer cap acció i delega la persistència a la capa DAO.
+
 ```java
 if (!validarGrau(v.getGrauGlobal(), v.getEstil())) return;
 ```
 
-### 3) `model/entidades/` (dominio)
-Aquí están las clases del dominio (`Via`, `Escola`, `Sector`, etc.).
+### 3) `model/entidades/` - Domini
 
-### 4) `model/dao/` + `model/dao/mysql/` (persistencia)
-- Interfaces DAO en `model/dao`.
-- Implementación SQL en `model/dao/mysql`.
+Objectes de negoci purs que representen el model de dades (`Via`, `Escola`, `Sector`, `Llarg`, etc.).
 
-Ejemplo:
+### 4) `model/dao/` + `model/dao/mysql/` - Persistència
+
+Separació mitjançant interfícies DAO i la implementació específica per a MySQL. Totes les crides es fan a través d'una factoria abstracta.
+
 ```java
 DAOFactory.obtenirDAOFactory(DAOFactory.MYSQL).obtenirViaDAO();
 ```
 
 ---
 
-## Flujo principal de ejecución
+## Flux Principal d'Execució
 
-Desde `Main` hemos dejado:
-1. Un único `Scanner` compartido.
-2. Inicialización de todos los controladores.
-3. Bucle principal de menú.
-4. Cierre seguro de conexión al salir.
+A la classe `Main` s'ha implementat l'optimització del cicle de vida de l'aplicació:
 
-Snippet:
+1. S'instancia un únic `Scanner` compartit per a totes les vistes.
+2. S'inicialitzen tots els controladors.
+3. S'executa el bucle principal del menú.
+4. S'ha configurat un tancament segur (Shutdown Hook) per alliberar la connexió JDBC en sortir.
+
 ```java
 Runtime.getRuntime().addShutdownHook(new Thread(() -> {
     model.persistencia.conexio_db.desconectar();
@@ -66,76 +64,65 @@ Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
 ---
 
-## Reglas de negocio importantes que ya hemos cubierto
+## Regles de Negoci Implementades
 
-## Vías y tipos
-- **Esportiva**: valida longitud (5–30) y anclajes.
-- **Clàssica/Gel**: gestiona lista de `Llarg` con metros y grado por tramo.
+S'han implementat les següents regles de negoci:
 
-## Estados con fecha
-- `APTE`, `CONSTRUCCIO`, `TANCADA`.
-- Si hay fecha de fin de estado (`data_finalitzacio_estat`), actualizamos estados antes de consultas.
-
-## Compatibilidad sector ↔ estilo
-- En sectores `GEL` solo permitimos vías `GEL`.
-- En sectores `MIXTE_ROCA` bloqueamos vías `GEL`.
-
-## Dificultad y validación de grados
-- Orden de grados centralizado para comparar rangos.
-- Validación de formato para evitar grados inválidos.
-
-## Contadores de vías (`num_vies`)
-- En altas/bajas/cambios de sector ajustamos contadores de escuela y sector desde DAO.
+* **Vies i Tipus:** Les vies esportives validen la longitud (5–30m) i el tipus d'ancoratge. Les vies clàssiques i de gel generen automàticament llistes d'objectes `Llarg`.
+* **Estats Temporals:** Si una via està en `CONSTRUCCIO` o `TANCADA` amb una data límit (`data_finalitzacio_estat`), l'aplicació actualitza els estats automàticament abans de llistar-les.
+* **Compatibilitat Sector ↔ Estil:** Es bloqueja la creació de vies de GEL en sectors de roca i viceversa.
+* **Dificultat:** L'ordre dels graus (de 4 a 9c+) està centralitzat per permetre validacions matemàtiques i cerques per rang (el Gel està limitat a 8b).
+* **Triggers lògics (Contadors):** En donar d'alta, eliminar o moure una via, els controladors i DAOs ajusten automàticament el camp `num_vies` de la seva escola i sector.
 
 ---
 
-## Consultas avanzadas implementadas
+## Model de Dades i Diagrama
 
-En `MySqlViaDAOImpl` hemos añadido:
-1. Vías disponibles por escuela.
-2. Búsqueda por rango de dificultad.
-3. Búsqueda por estado.
-4. Vías que pasaron a aptas recientemente.
-5. Vías más largas por escuela.
+![Diagrama base de dades](diagrama_bd.png)
 
----
+L'esquema relacional s'ha dissenyat i normalitzat de la següent forma:
 
-## Persistencia y conexión MySQL
-
-### Configuración
-En `model/persistencia/config.java` hemos centralizado:
-- `DB_TYPE`
-- `URL`
-- `USER`
-- `PASS`
-- `DRIVER`
-- `DRIVER_JAR`
-
-### Conexión
-- `ConnectionFactory.java`: crea conexión y carga el driver.
-- Si el driver no está en classpath, intentamos fallback con búsqueda de JAR + `DriverShim`.
-- `conexio_db.java`: conexión compartida con apertura bajo demanda y cierre final.
+| Taula | Descripció de la funció |
+| --- | --- |
+| `escoles` | Zones principals (nom únic). |
+| `sectors` | Subzones vinculades a una escola. |
+| `vies` | Taula unificada amb camps anul·lables per absorbir les dades de vies esportives (llargada_total, ancoratges). |
+| `llargs` | Taula subordinada a les vies per trams multipitx. |
+| `escaladors` | Usuaris registrats i creadors de vies. |
+| `historial_escaladors` | Taula N:M per registrar ascensions i èxits. |
 
 ---
 
-## Estructura resumida
+## Consultes Avançades Integrades
+
+S'han afegit a la implementació `MySqlViaDAOImpl` els mètodes de consulta següents:
+
+1. Vies disponibles per escola (només estat APTE).
+2. Cerca de vies per rang de dificultat (ex: entre 6a i 7b).
+3. Cerca instantània de vies per estat.
+4. Vies que han passat a aptes recentment (control de reobertures).
+5. Vies més llargues per escola.
+
+---
+
+## Persistència i Connexió MySQL
+
+* **Configuració:** Els paràmetres de connexió s'han centralitzat al fitxer `config.java` (`DB_TYPE`, `URL`, `USER`, `PASS`).
+* **Connexió Dinàmica:** El mòdul `ConnectionFactory` intenta carregar el driver pel classpath. Si no el troba, realitza una cerca intel·ligent del JAR (`mysql-connector-j-*.jar`) i el carrega en temps d'execució mitjançant un `DriverShim`.
+
+---
+
+## Estructura Resumida
 
 ```text
 src/
   Main.java
   controller/
     EscolaController.java
-    SectorController.java
-    ViaController.java
-    EscaladorController.java
-    HistorialController.java
+    SectorController.java ...
   view/
     MenuView.java
-    EscolaView.java
-    SectorView.java
-    ViaView.java
-    EscaladorView.java
-    HistorialView.java
+    EscolaView.java ...
   model/
     entidades/
     dao/
@@ -145,33 +132,28 @@ src/
 
 ---
 
-## Cómo ejecutar
+## Com Executar el Projecte
 
-Con compilado previo (`out`) y conector en classpath:
+Amb el projecte compilat prèviament a la carpeta `out` i amb el connector MySQL disponible, es pot executar l'aplicació de dues formes:
+
+**Mode automatitzat (amb fitxer d'inputs):**
 
 ```powershell
 Get-Content .\auto-test-inputs.txt | java -cp "out;connectorMysql\mysql-connector-j-9.7.0.jar" Main
 ```
 
-Si quieres modo manual, ejecuta igual sin redirección y responde por consola.
+**Mode manual:**
+
+```powershell
+java -cp "out;connectorMysql\mysql-connector-j-9.7.0.jar" Main
+```
+
+En mode manual, l'aplicació mostra els menús i es pot interactuar directament per consola.
 
 ---
 
-## Qué documentos mirar según necesidad
+## Autors i Curs
 
-- Visión global técnica: [Estudiar.md](Estudiar.md)
-- Lógica de vías (clave): `src/controller/ViaController.java` + `src/model/dao/mysql/MySqlViaDAOImpl.java`
-- Entrada y validación de datos de vía: `src/view/ViaView.java`
-- Conexión y driver: `src/model/persistencia/ConnectionFactory.java`
-
----
-
-## Estado actual del proyecto
-
-A nivel funcional, hemos dejado el proyecto en un punto sólido para entrega:
-- Arquitectura consistente.
-- Validaciones de entrada reforzadas.
-- Lógica de negocio principal implementada.
-- Documentación técnica ampliada (incluyendo `Estudiar.md`).
-
-Si más adelante queremos iterar, la siguiente mejora natural sería añadir tests automáticos de integración DAO + reglas de negocio.
+**Autors:** Biel Soler i Marcos Lopez  
+**Curs:** 2025-2026  
+**Tecnologies:** Java SE, JDBC, MySQL, Git
