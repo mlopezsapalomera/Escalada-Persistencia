@@ -154,6 +154,6 @@ En mode manual, l'aplicació mostra els menús i es pot interactuar directament 
 
 ## Autors i Curs
 
-**Autors:** Biel Soler i Marcos Lopez  
+**Autors:** Biel Soler i Marcos López  
 **Curs:** 2025-2026  
 **Tecnologies:** Java SE, JDBC, MySQL, Git
